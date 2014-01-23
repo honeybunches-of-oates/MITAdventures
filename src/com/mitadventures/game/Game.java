@@ -55,41 +55,42 @@ public class Game extends Canvas implements Runnable {
 	private Image startbar;
 	private Image messageBox;
 	
+		// Game States
 	private boolean atTitle = true;
 	private boolean playing = false;
 	private boolean start_is_visible = false;
 	
-	
+		// Game Objects
 	public Screen screen;
 	public Player player;
 	public Controller controller;
 	
+		// Level Objects
 	public Level level;
 	public int levelNum = 1;
 	public Map layer1;
 	public Map layer2;
-	
 	public List<WarpPoint> warpPoints = new ArrayList<WarpPoint>();
 	
+		// Animation tiles *WORK IN PROGRESS*
 	private boolean tilechange;
 	private int xTilePosGrass = 0;
 	private int yTilePosGrass = 0;
 	
+		// Actions
 	public boolean a_is_hit = false;
 	public boolean b_is_hit = false;
 	public boolean start_is_hit = false;
 	public boolean select_is_hit = false;
-	
 	public boolean a_is_released = true;
 	public boolean b_is_released = true;
 	public boolean start_is_released = true;
-	public boolean select_is_released = true;
-	
+	public boolean select_is_released = true;	
 	public boolean messageBoxOpen = false;
-	
 	private int entityIdentity;
 	private boolean freeNPC;
 	
+		// NPC List
 	private List<NPC> NPCs = new ArrayList<NPC>();
 	/////////////
 	
@@ -117,7 +118,7 @@ public class Game extends Canvas implements Runnable {
 	
 	// Run Method //
 	public void run() {
-			// Sets up Tick function, will report ticks per second
+			// Implements tick function, will report frames per second and ticks per second to console
 		long lastTime = System.nanoTime();
 		double nsPerTick = 1000000000D / 60D;
 
@@ -127,6 +128,7 @@ public class Game extends Canvas implements Runnable {
 		long lastTimer = System.currentTimeMillis();
 		double delta = 0;
 		
+			// Initializes game data
 		init();
 
 		while (running) {
@@ -171,6 +173,7 @@ public class Game extends Canvas implements Runnable {
 			}
 				
 			/*
+			 * SAVE METHOD, NOT BEING USED AT THE MOMENT
 			if (start_is_hit) {
 				saveGame();
 				start_is_hit = false;
@@ -195,24 +198,30 @@ public class Game extends Canvas implements Runnable {
 	
 	// Tick Method //
 	public void tick() {
+			// Ticks game/level
 		tickCount++;
 		level.tick();
+			// Checks for actions
 		actionHandler();
 	}
 	/////////////////
 	
 	// Initialize Method //
 	public void init() {
+			// Retrieves level map data
 		createLevel(levelNum);
 		controller = new Controller(this);
+			// Creates and inserts player into map at tile (12, 31) *coordinates are multiplied by 16, the size of each tile*
 		player = new Player(this, level, 12 * 16, 31 * 16, controller);
 		level.addEntity(player);
 		//addWarpPoint(new WarpPoint(this, 1, 10, 6, 2, 10, 5, "down"));
 		//addWarpPoint(new WarpPoint(this, 2, 10, 5, 1, 10, 6, "down"));
+			// Loads all sprite, game, and map images
 		loadImages();
 	}
 	///////////////////////
 	
+		// Sprite images
 	private Image linkDown;
 	private Image linkDown1;
 	private Image linkDown2;
@@ -225,7 +234,8 @@ public class Game extends Canvas implements Runnable {
 	private Image linkRight;
 	private Image linkRight1;
 	private Image linkRight2;
-	
+		
+		// Array with images for 4 directions and 3 stages per direction
 	private Image linkSprites[][] = new Image[4][3];
 	
 	private Image wolfMidnaDown;
@@ -245,12 +255,20 @@ public class Game extends Canvas implements Runnable {
 	private Image wolfMidnaRight3;
 	private Image wolfMidnaRight4;
 	
+		// Array with images for 4 directions and 5 stages per direction
 	private Image wolfMidnaSprites[][] = new Image[4][5];
 	
+		// Array for individual tiles from spritesheet
 	private List<BufferedImage> tileset = new ArrayList<BufferedImage>();
+	
+		// Array for individual alphanumerical characters from font sheet
+	private List<BufferedImage> font = new ArrayList<BufferedImage>();
+	
+	private BufferedImage fontsheet;
 	
 	// Load Images Method //
 	public void loadImages() {
+			// Loading all images from res folder
 		try {
 		    titlescreen = ImageIO.read(Game.class.getResourceAsStream("/logo.png"));
 		} catch (IOException e) {
@@ -379,8 +397,13 @@ public class Game extends Canvas implements Runnable {
 			wolfMidnaRight4 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Right4.png"));
 		} catch (IOException e) {
 			System.out.println(e);
+		}  try {
+			fontsheet = ImageIO.read(Game.class.getResourceAsStream("/MacChicago.png"));
+		} catch (IOException e) {
+			System.out.println(e);
 		}
 		
+			// Loading all tiles from spritesheet to array
 		BufferedImage spritesheet = screen.sheet.image;
 		
 		for (int y = 0; y < spritesheet.getHeight() / 16; y++) {
@@ -389,6 +412,14 @@ public class Game extends Canvas implements Runnable {
 			}
 		}
 		
+			// Loading all alphanumerical characters from fontsheet to array
+		for (int y = 0; y < fontsheet.getHeight() / 16; y++) {
+			for (int x = 0; x < fontsheet.getWidth() / 8; x++) {
+				font.add(spritesheet.getSubimage(x * 8, y * 16, 8, 16));
+			}
+		}
+		
+			// Assigning sprite images to corresponding positions in arrays
 		linkSprites[0][0] = linkUp;
 		linkSprites[0][1] = linkUp1;
 		linkSprites[0][2] = linkUp2;
@@ -426,6 +457,7 @@ public class Game extends Canvas implements Runnable {
 	
 	// Initialize when Loading Game Method //
 	public void init_load() {
+			// Almost same as init() method, but used for loading saved game files, not starting new game files
 		screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/Sprite_Sheet.png"));
 		createLevel(levelNum);
 		controller = new Controller(this);
@@ -439,14 +471,17 @@ public class Game extends Canvas implements Runnable {
 	
 	// Add WarpPoint Method //
 	public void addWarpPoint(WarpPoint warpPoint) {
+			// For adding a warp point to the map's warp point array
 		this.warpPoints.add(warpPoint);
 	}
 	//////////////////////////
 	
 	// Warp Test all Warp Points Method //
 	public void warpTests() {
+			// Checks to see if player is at a warp point
 		for (WarpPoint w : warpPoints)
 			w.warpTest();
+			// Warps player to corresponding warp point
 		for (int i = 0; i < warpPoints.size(); i++) {
 			if (warpPoints.get(i).warp) {
 				this.levelNum = warpPoints.get(i).level2;
@@ -481,24 +516,32 @@ public class Game extends Canvas implements Runnable {
 	
 	// Animate Tiles Method //
 	public void animateTiles() {
-		
+			// *TO BE COMPLETED*
 	}
 	//////////////////////////
 	
 	// Create Levels Method //
 	public void createLevel(int levelNum) {
+		NPCs.clear();
+		
+			// Decides which level player is currently in
 		switch (levelNum) {
-		//Sacred Grove Temple
+		// Sacred Grove Temple
+			/* Each case creates two layers, a base layer and a top layer (rendered over the player), 
+			 * the layers are a set of strings with numbers corresponding to a tile value from a spritesheet, 
+			 * rows are indicated with slashes, see class Map and ImageToMap for details.
+			 * All other level specific objects are added here
+			 */
 		case 1: layer1 = new Map("1   2   3   1   2   3   1   2   3   1   2   3   1   2   3   1   2   3   1   2   3   1   2   3   1     1/4   5   6   4   5   6   4   5   6   4   5   6   4   5   6   4   5   6   4   5   6   4   5   6   4     4/7   8   9   7   8   9   7   8   9   7   8   9   7   8   9   7   8   9   7   8   9   7   8   9   7     7/10  11  12  13  14  15  16  14  15  16  14  15  16  14  15  16  14  15  16  14  15  17  18  11  19   19/20  21  22  23  24  25  26  24  25  26  24  25  26  24  25  26  24  25  26  24  25  27  20  21  22   22/28  29  30  31  32  32  33  34  35  35  35  35  35  35  35  34  34  35  36  32  32  37  28  29  30   30/1   2   3   38  39  33  40  41  41  42  41  43  44  41  45  45  45  45  46  36  47  48  1   2   3     3/4   5   6   4   49  50  41  43  44  41  51  41  41  52  45  45  52  41  45  53  54  6   4   5   6     6/7   8   9   7   55  50  51  41  41  52  56  57  58  59  60  51  41  61  62  53  63  9   7   8   9     9/10  11  12  13  64  50  65  66  67  68  69  70  71  72  73  74  75  76  77  53  78  79  80  11  81   81/20  21  22  23  82  50  83  84  85  84  86  87  88  89  90  91  77  92  93  53  94  95  20  21  22   22/28  29  30  31  32  96  97  98  99  41  100 101 102 103 104 45  45  45  105 106 32  37  28  29  30   30/1   2   107 38  39  32  96  97  108 45  77  75  45  43  51  42  45  105 106 32  47  48  109 2   3     3/4   5   6   4   49  32  32  96  97  99  110 77  45  41  41  111 105 106 32  32  54  6   4   5   6     6/7   8   9   7   55  32  32  32  96  112 112 113 45  114 112 112 106 32  32  32  63  9   7   8   9     9/10  11  81  10  115 116 117 118 116 117 119 120 121 122 123 116 117 118 116 117 124 81  10  11  81   81/20  21  22  20  21  22  20  21  125 126 127 128 45  129 130 131 132 21  22  20  21  22  20  21  22   22/28  29  30  28  133 134 135 135 136 137 138 139 45  140 141 142 143 135 135 144 145 30  28  29  30   30/1   146 147 148 149 150 151 152 151 153 154 155 45  156 157 158 151 159 151 160 161 147 148 162 3     3/4   163 164 165 149 166 151 151 151 167 168 169 170 171 168 151 151 151 151 172 161 164 165 173 6     6/7   55  32  33  149 166 153 153 153 153 168 174 175 176 168 153 153 153 153 172 161 36  32  63  9     9/3   177 39  50  149 178 179 180 181 179 168 182 183 184 168 180 181 179 179 185 161 53  47  186 1     1/6   4   49  187 149 188 98  189 190 45  191 192 193 194 191 45  45  45  45  195 161 196 54  6   4     4/9   7   55  187 149 188 45  197 198 199 75  200 201 202 45  45  45  43  44  195 161 196 63  9   7     7/81  203 64  50  149 188 45  204 205 206 77  44  41  45  45  207 208 209 41  195 161 53  78  210 10   10/22  211 82  50  149 188 45  212 213 214 42  41  52  45  45  215 213 216 67  195 161 53  94  217 20   20/30  31  32  187 149 188 43  218 219 220 41  66  45  45  43  221 222 223 85  195 161 196 32  37  28   28/3   177 39  50  149 188 41  41  41  41  52  45  45  45  41  41  111 98  99  195 161 53  47  186 1     1/6   4   49  187 149 188 66  67  66  67  68  45  224 45  61  51  41  61  62  195 161 196 54  6   4     4/9   7   55  187 149 188 84  85  45  45  225 226 227 228 229 74  75  76  77  195 161 196 63  9   7     7/81  203 64  50  149 188 98  99  45  45  230 231 232 233 234 91  77  92  93  195 161 53  78  210 10   10/22  211 82  50  149 188 45  45  45  45  235 236 237 238 239 45  45  45  45  195 161 53  94  217 20   20/30  31  32  187 149 188 45  45  45  45  240 241 242 243 244 245 45  45  45  195 161 196 32  37  28   28/3   177 39  50  149 188 43  51  42  45  246 247 248 249 250 45  43  51  42  195 161 53  47  186 1     1/6   4   49  187 149 188 45  251 251 252 45  45  45  41  42  41  43  44  41  195 161 196 54  6   4     4/9   7   55  187 149 188 45  253 254 251 45  45  45  44  41  51  41  41  52  195 161 196 63  9   7     7/81  203 64  50  149 188 45  251 251 255 45  45  45  43  44  45  41  41  42  195 161 53  78  210 10   10/22  211 82  50  149 188 45  256 257 258 252 45  75  41  41  45  43  44  41  195 161 53  94  217 20   20/30  31  32  187 149 188 45  41  42  41  259 260 261 262 259 45  41  41  52  195 161 196 32  37  28   28/3   177 39  50  149 188 45  44  41  51  263 264 264 264 263 45  66  67  68  195 161 53  47  186 1     1/6   4   49  187 149 188 45  265 266 45  267 264 264 264 267 45  265 266 45  195 161 196 54  6   4     4/9   7   55  187 149 268 269 260 262 303 269 260 261 262 270 269 260 262 303 271 161 196 63  9   7     7/81  203 64  50  149 272 264 264 264 264 264 264 264 273 274 275 264 264 264 276 161 53  78  210 10   10/22  211 82  50  149 272 264 264 264 264 264 264 264 264 264 264 264 264 264 276 161 53  94  217 20   20/30  31  32  187 149 272 264 264 264 264 264 264 264 264 264 264 264 264 264 276 161 196 32  37  28   28/3   177 39  50  149 272 264 264 264 264 264 264 264 264 264 264 264 264 264 276 161 53  47  186 1     1/6   4   49  187 277 278 135 135 135 135 135 135 135 135 135 135 135 135 135 279 280 196 54  6   4     4/9   7   55  187 281 151 152 151 152 151 152 151 152 151 152 151 152 152 151 152 282 196 63  9   7     7/81  203 64  50  281 151 151 151 167 151 151 151 167 151 151 151 167 151 151 167 282 53  78  210 10   10/22  211 82  50  281 153 153 153 153 153 153 153 153 153 153 153 153 153 153 153 282 53  94  217 20   20/30  31  32  187 283 284 118 285 284 118 286 287 118 286 284 118 285 287 118 286 288 196 32  37  28   28/");				 
 				layer2 = new Map("289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 290 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 291 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 292 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 293 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 294 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 295 296 289 289 289 289 289 289 295 296 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 297 298 299 289 289 289 289 289 297 298 299 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 300 301 302 289 289 289 289 289 300 301 302 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/");
 				level = new Level("map1", layer1, layer2);
 			   	screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/Spritesheet(Sacred_Grove_Temple).png")); 	 
 			  // Message Boxes
-				MessageBox sign1 = new MessageBox(14, 42, "the guardians awaken to the smell of bubble tea.");
+				MessageBox sign1 = new MessageBox(14, 42, "The guardians awaken to the smell of bubble tea.");
 				level.addMessageBox(sign1);
 					break;
 					
-		//Ordon Village Link's House
+		// Ordon Village Link's House
 		case 2:	layer1 = new Map("0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
 							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
 							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
@@ -539,12 +582,11 @@ public class Game extends Canvas implements Runnable {
 				level = new Level("map2", layer1, layer2);
 				
 				// Message Boxes
-				MessageBox sign2 = new MessageBox(12, 7, "hello world!");
+				MessageBox sign2 = new MessageBox(12, 7, "Hello World!");
 				level.addMessageBox(sign2);
 				
 				// NPCs
-				NPCs.clear();
-				NPC genericNPC = new NPC(this, level, 16 * 16, 9 * 16 - 8, "don't take the blue acid!");
+				NPC genericNPC = new NPC(this, level, 16 * 16, 9 * 16 - 8, "Don't take the blue acid!");
 				NPCs.add(genericNPC);
 				level.addEntity(genericNPC);
 					break;
@@ -609,7 +651,8 @@ public class Game extends Canvas implements Runnable {
 	///////////////////////////
 	
 	// Render Message Box Method //
-	public void renderMessageBox() {
+	public void renderMessageBox(Graphics g) {
+			// Direction of box booleans
 		boolean above = false;
 		boolean below = false;
 		boolean toRight = false;
@@ -622,7 +665,6 @@ public class Game extends Canvas implements Runnable {
 				a_is_hit = false;
 				player.canMove = true;
 				this.freeNPC = true;
-				screen.renderMessageBox(false);
 			}
 			for (MessageBox m : level.messageBoxes) {
 				if (player.direction == 1 & m.getYPos() + 1 == player.getCurrentYTile() & m.getXPos() == player.getCurrentXTile())
@@ -634,8 +676,8 @@ public class Game extends Canvas implements Runnable {
 				if (player.direction == 2 & m.getYPos() == player.getCurrentYTile() & m.getXPos() - 1 == player.getCurrentXTile())
 					toLeft = true;
 				if ((above || below || toRight || toLeft) & (a_is_hit || messageBoxOpen)) {
-						screen.renderMessageBox(true);
-						fonts.render(m.getMessage(), screen, screen.xOffset + 5, screen.yOffset + 84);
+						g.drawImage(messageBox, 0, 384, getWidth(), getHeight() - 384, null);
+						fonts.render(m.getMessage(), screen, 0, 8, g, font);
 						messageBoxOpen = true;
 						a_is_hit = false;
 						player.canMove = false;
@@ -652,8 +694,8 @@ public class Game extends Canvas implements Runnable {
 							if (player.direction == 2 & player.getCurrentYTile() == npc.getCurrentYTile() & player.getCurrentXTile() - 1 == npc.getCurrentXTile())
 								toLeft = true;
 							if ((above || below || toRight || toLeft) & (a_is_hit || messageBoxOpen)) {
-									screen.renderMessageBox(true);
-									fonts.render(npc.getMessage(), screen, screen.xOffset + 5, screen.yOffset + 84);
+									g.drawImage(messageBox, 0, 384, getWidth(), getHeight() - 384, null);
+									fonts.render(npc.getMessage(), screen, screen.xOffset + 5, screen.yOffset + 84, g, font);
 									messageBoxOpen = true;
 									a_is_hit = false;
 									player.canMove = false;
@@ -672,7 +714,6 @@ public class Game extends Canvas implements Runnable {
 								npc.canMove = true;
 								npc.crashTest();
 								freeNPC = false;
-								screen.renderMessageBox(false);
 							}
 						}
 					if (a_is_hit) 
@@ -688,18 +729,20 @@ public class Game extends Canvas implements Runnable {
 	public void renderPlayer(Graphics g) {
 		int dir = player.direction - 1;
 		int stage = player.spriteStage;
+			// Renders player in center of screen facing proper direction and at proper sprite stage
 		g.drawImage(linkSprites[dir][stage], 6 * 16 * SCALE + 3, 4 * 16 * SCALE + 12, 14 * SCALE, 28 * SCALE, null);
 	}
 	//////////////////////////
 	
 	// Render Menu Method //
 	public void renderMenu() {
-		
+			// *TO BE COMPLETED*
 	}
 	////////////////////////////
 	
 	// Render Layer Method //
 	public void renderLayer(Screen screen, int xOffset, int yOffset, Map layer, Graphics g) {
+			// Creates boundaries for player movement
 		if (xOffset > ((level.width << 4) - screen.width))
 			xOffset = ((level.width << 4) - screen.width);
 		if (xOffset < 0)
@@ -708,11 +751,14 @@ public class Game extends Canvas implements Runnable {
 			yOffset = ((level.height << 4) - screen.height);
 		if (yOffset < 0)
 			yOffset = 0;
-
+			
+			// Adjusts screen so player is in the center
 		screen.setOffset(xOffset, yOffset);
 		
+			// Renders the segment of the map surrounding the player and one tile above, to the right, below and to the left of the screen so movement appears smooth
 		for (int y = 0; y < level.height; y++) {
 			for (int x = 0; x < level.width; x++) {
+					// Checks that map tile is readable
 				if (Map.getTile(x, y, layer) >= 0) {
 					if (x > (player.xPos / 16) - (screen.width / 32) - 1 && y > (player.yPos / 16) - (screen.height / 32) - 2 && x < (player.xPos / 16) + (screen.width / 32) + 2 && y < (player.yPos / 16) + (screen.height / 32) + 2) {
 						g.drawImage(tileset.get(Map.getTile(x, y, layer) - 1), (x * 16 - xOffset)  * SCALE, (y * 16 - yOffset) * SCALE, 16 * SCALE, 16 * SCALE, null);
@@ -732,26 +778,28 @@ public class Game extends Canvas implements Runnable {
 			return;
 		}
 		
+			// Sets up graphics based on buffer strategy
 		Graphics g = bs.getDrawGraphics();
 		
+			// Sets up the offset for where the screen starts relative to the player in the context of the map
 		int xOffset = player.xPos + 8 - (screen.width / 2);
 		int yOffset = player.yPos + 8 - (screen.height / 2);
 		
 		if (playing) {
-			
+				// Renders Layer 1, then the player, then Layer 2, then messages if there any
 			renderLayer(screen, xOffset, yOffset, layer1, g);
 			renderPlayer(g);
 			renderLayer(screen, xOffset, yOffset, layer2, g);
-			renderMessageBox();
-			if (screen.renderMessageBox) {
-				g.drawImage(messageBox, 0, 384, getWidth(), getHeight() - 384, null);
-			}
+			renderMessageBox(g);
 		}
-		
+			
+			// Creates a border
 		g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 		
+			// Renders title screen if at title
 		if (atTitle) {
 			g.drawImage(titlescreen, 0, 0, getWidth(), getHeight(), null);
+				// Start bar will flash
 			if (start_is_visible)
 				g.drawImage(startbar, 15, 300, getWidth(), 12, null);
 		}
@@ -768,28 +816,31 @@ public class Game extends Canvas implements Runnable {
 	public void saveGame() {
 		BufferedWriter bufferedWriter = null;
 		try {
+				// Deletes old save file
 			File oldsave = new File("profile.sav");
 			oldsave.delete();
+				// Creates new save file
 			File newsave = new File("profile.sav");
 			newsave.createNewFile();
+				// Stores level number and player position (will include more when game states are added)
 			bufferedWriter = new BufferedWriter(new FileWriter("profile.sav"));
 			bufferedWriter.write("" + levelNum);
 			bufferedWriter.newLine();
 			bufferedWriter.write("" + player.xPos);
 			bufferedWriter.newLine();
 			bufferedWriter.write("" + player.yPos);
-		} catch (FileNotFoundException ex) {
-			ex.printStackTrace();
-		} catch (IOException ex) {
-			ex.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		} finally {
 			try {
 				if (bufferedWriter != null) {
 					bufferedWriter.flush();
 					bufferedWriter.close();
 				}
-			} catch (IOException ex) {
-				ex.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
@@ -797,9 +848,11 @@ public class Game extends Canvas implements Runnable {
 	
 	// Load Method //
 	public void loadGame() {
+			// Loads most recent save file
 		File file = new File("profile.sav");
 		BufferedReader br = null;
 		try {
+				// Buffered reader will set instance variables levelNum and player position to save file's record
 			br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 			this.levelNum = Integer.parseInt(br.readLine());
 			player.xPos1 = Integer.parseInt(br.readLine());
@@ -815,6 +868,7 @@ public class Game extends Canvas implements Runnable {
 	
 	// Main Method //
 	public static void main(String[] args) {
+			// Sets up and starts a new game
 		Game game = new Game();
 			game.start();
 	}

@@ -1,60 +1,62 @@
 package com.mitadventures.game.graphics;
 
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.util.List;
+
 public class Fonts {
 
-	public static String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ      "
-			+ "0123456789.,:;'\"!?$#@           ";
+	public static String chars = "!\"$&,-.0123456789:;=?'    " + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			+ "abcdefghijklmnopqrstuvwxyz";
 	private int index = 0;
+	private int linesize = 22;
 
-	// @ = MALE CHAR
-	// # = FEMALE CHAR
-
-	public void render(String msg, Screen screen, int x, int y) {
+	public void render(String msg, Screen screen, int x, int y, Graphics g, List<BufferedImage> font) {
 		if (msg == null)
 				return;
-		msg = msg.toUpperCase();
+		int messageLength = msg.length();
+		int i = 0;
 		
-		String line = msg;
-		
-		for (int i = 0; i < msg.length() / 17 + 1; i++) {
-			if (msg.length() >= 17)
-				line = getLine(msg);
-			for (int i1 = line.length() - 1; i1 >= 0; i1--) {
-				int charIndex1 = chars.indexOf(line.charAt(i1));
-				if (charIndex1 >= 0)
-					screen.renderText(x + (i1 * 8) + 1, y + 1 + i * 10,
-							charIndex1 + 30 * 32 + 1, ColorPalette.get(333, -1, -1, -1));
+		do {
+			String line = getLine(msg);
+			for (int chari = 0; chari < line.length(); chari++) {
+				char character = line.charAt(chari);
+				for (int ind = 0; ind < chars.length(); ind++) {
+					if (character == chars.charAt(ind)) {
+						g.drawImage(font.get(ind), (x + chari * 8 + 16) * 3, (y + i * 16) * 3, 8 * 3, 16 * 3, null);
+						break;
+					}
+				}
 			}
-			for (int i2 = line.length() - 1; i2 >= 0; i2--) {
-				int charIndex2 = chars.indexOf(line.charAt(i2));
-				if (charIndex2 >= 0)
-					screen.renderText(x + (i2 * 8), y + i * 10, charIndex2 + 30 * 32 + 1,
-							ColorPalette.get(0, -1, -1, -1));
-			}
+			i++;
+			msg = msg.substring(line.length());
 		}
+		while (index < messageLength - 1);
 		resetIndex();
 	}
 	
 	public String getLine(String msg) {
-		if (msg.charAt(17) == ' ') {
-			System.out.println("17");
-			String piece = msg.substring(index, index + 17);
-			this.index += 17;
-			return piece;
-		} else 
-			for (int i = 17; i > 0; i--) {
-				if (msg.charAt(i - 1) == ' ') {
-					String piece = "";
-					if (index + i - 1 <= msg.length())
-						piece = msg.substring(index, index + i - 1);
-					if (index + i - 1 > msg.length())
-						piece = msg.substring(index, msg.length());
-					this.index += i;
-					return piece;
+		if (msg.length() > linesize) {
+			if (msg.charAt(linesize - 1) == ' ') {
+				String line = msg.substring(0, linesize - 1);
+				this.index += linesize;
+				return line;
+			} else {
+				for (int i = linesize - 2; i > 0; i--) {
+					if (msg.charAt(i) == ' ') {
+						String line = msg.substring(0, i);
+						this.index += i + 1;
+						return line;
+					}
 				}
 			}
-		return msg;
+		} else {
+			index += msg.length();
+			return msg;
+		}
+		return "";
 	}
+		
 	public void setIndex(int index) {
 		this.index = index; 
 	}
