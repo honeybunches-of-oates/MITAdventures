@@ -19,31 +19,12 @@ package com.mitadventures.game;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Controller implements KeyListener {
 	
 	public Game game;
-	
-	// Controller Constructor //
-	public Controller(Game game) {
-		game.addKeyListener(this);
-		this.game = game;
-	}
-	////////////////////////////
-	
-	// Key Class //
-	public class Key {
-		private boolean pressed = false;
-
-		public boolean isPressed() {
-			return pressed;
-		}
-
-		public void toggle(boolean isPressed) {
-			pressed = isPressed;
-		}
-	}
-	///////////////
 	
 	// Key Object Declarations //
 	public Key up = new Key();
@@ -57,6 +38,49 @@ public class Controller implements KeyListener {
 	public long lastPressProcessed = 0;
 	public boolean keyPressed = false;
 	//////////////////////////////
+	
+	// Controller Constructor //
+	public Controller(Game game) {
+		game.addKeyListener(this);
+		this.game = game;
+	}
+	////////////////////////////
+	
+	// Key Class //
+	public class Key {
+		
+		public boolean is_hit = false;
+		public boolean is_released = false;
+		private boolean pressed = false;
+
+		public boolean isPressed() {
+			return pressed;
+		}
+
+		public void toggle(boolean isPressed) {
+			pressed = isPressed;
+		}
+		
+		public void check() {
+			if (is_released & pressed) {
+				is_hit = true;
+				is_released = false;
+			} else if (!pressed) {
+				is_hit = false;
+				is_released = true;
+			}
+		}
+	}
+	///////////////
+	
+	public void check() {
+		a_button.check();
+		b_button.check();
+		start.check();
+		select.check();
+		up.check();
+		down.check();
+	}
 	
 	// Key Pressed Method //
 	public void keyPressed(KeyEvent e) {

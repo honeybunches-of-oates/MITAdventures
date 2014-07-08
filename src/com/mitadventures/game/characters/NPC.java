@@ -10,15 +10,14 @@ public class NPC extends Actor {
 	// Reference Variables //
 	public boolean isWalking = false;
 	public int numSteps = 0;
-	public int spriteStage = 0;
 	public long lastprocessed;
 	public Game game;
 	private int stride = 0;
 	/////////////////////////
 
 	// NPC Constructor //
-	public NPC(Game game, Level level, int xPos, int yPos, String msg) {
-		super(xPos, yPos, level);
+	public NPC(Game game, Level level, int xPos, int yPos, String msg, String type) {
+		super(xPos * 16, yPos * 16 - 8, level, type);
 		this.game = game;
 		super.setMessage(msg);
 	}
@@ -145,9 +144,4 @@ public class NPC extends Actor {
 			canMoveRight = false;
 	}
 	///////////////////////
-
-	public void render(Screen screen) {
-		// TODO Auto-generated method stub
-		
-	}
 }

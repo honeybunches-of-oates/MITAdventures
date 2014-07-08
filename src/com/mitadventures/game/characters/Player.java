@@ -17,7 +17,6 @@ public class Player extends Actor {
 	private Controller controller;
 	public boolean isWalking = false;
 	public int numSteps = 0;
-	public int spriteStage = 0;
 	public long lastprocessed;
 	public Game game;
 	private int stride = 0;
@@ -25,8 +24,8 @@ public class Player extends Actor {
 	////////////////////////////////
 
 	// Player Constructor //
-	public Player(Game game, Level level, int x, int y, Controller controller) {
-		super(x, y, level);
+	public Player(Game game, Level level, int x, int y, Controller controller, String type) {
+		super(x, y, level, type);
 		this.controller = controller;
 		this.game = game;
 	}
@@ -178,8 +177,4 @@ public class Player extends Actor {
 
 	}
 	///////////////////////
-
-	public void render(Screen screen) {
-		
-	}
 }

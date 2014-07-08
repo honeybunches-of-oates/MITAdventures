@@ -4,6 +4,7 @@
 
 package com.mitadventures.game.characters;
 
+import com.mitadventures.game.graphics.PlayerSpriteSet;
 import com.mitadventures.game.level.Level;
 
 public abstract class Actor extends Entity {
@@ -13,12 +14,13 @@ public abstract class Actor extends Entity {
 	/////////////////////////
 	
 	// Actor Constructor //
-    public Actor(int x, int y, Level level) {
+    public Actor(int x, int y, Level level, String type) {
     	super(level, x, y);
     	this.xPos = x;
     	this.yPos = y;
     	this.xPos1 = x;
     	this.yPos1 = y;
+    	spriteSet = new PlayerSpriteSet(type);
     }
     ///////////////////////
     

@@ -36,20 +36,10 @@ public class Level {
 		}
 	}
 	
-	
-
-	
 	// Render Transition Method //
 	public void renderTransition(Screen screen) {
 		
 	}
-	
-	// Render All Characters Method //
-	public void renderCharacters(Screen screen) {
-		for (Entity e : entities)
-			e.render(screen);
-	}
-	//////////////////////////////////
 	
 	// Add Entity Method //
 	public void addEntity(Entity entity) {

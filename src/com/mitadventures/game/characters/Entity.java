@@ -1,6 +1,6 @@
 package com.mitadventures.game.characters;
 
-import com.mitadventures.game.graphics.Screen;
+import com.mitadventures.game.graphics.SpriteSet;
 import com.mitadventures.game.level.Level;
 
 
@@ -11,6 +11,7 @@ public abstract class Entity {
 	public int yPos;
 	public int xPos1;
 	public int yPos1;
+	public int spriteStage = 0;
 	public boolean canMoveDown = true;
 	public boolean canMoveUp = true;
 	public boolean canMoveLeft = true;
@@ -19,6 +20,7 @@ public abstract class Entity {
 	public int direction = 3;
 	protected Level level;
 	private String message = "no message";
+	public SpriteSet spriteSet;
 
 	public Entity(Level level, int x, int  y) {
 		init(level);
@@ -136,6 +138,4 @@ public abstract class Entity {
 	// /////////////////////////////
 	
 	public abstract void tick();
-
-	public abstract void render(Screen screen);
 }

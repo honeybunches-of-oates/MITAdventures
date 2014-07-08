@@ -22,16 +22,17 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
+import com.mitadventures.game.characters.Entity;
 import com.mitadventures.game.characters.NPC;
 import com.mitadventures.game.characters.Player;
+import com.mitadventures.game.graphics.Fonts;
+import com.mitadventures.game.graphics.MenuBar;
 import com.mitadventures.game.graphics.MessageBox;
 import com.mitadventures.game.graphics.Screen;
 import com.mitadventures.game.graphics.SpriteSheet;
+import com.mitadventures.game.level.Level;
 import com.mitadventures.game.level.Map;
 import com.mitadventures.game.level.WarpPoint;
-import com.mitadventures.game.Controller;
-import com.mitadventures.game.graphics.Fonts;
-import com.mitadventures.game.level.Level;
 
 public class Game extends Canvas implements Runnable {
 
@@ -42,7 +43,7 @@ public class Game extends Canvas implements Runnable {
 	public static final int WIDTH = 208;
 	public static final int HEIGHT = 176;
 	public static final int SCALE = 3;
-	public static final String NAME = "Game";
+	public static final String NAME = "MIT Adventures: Tim vs. The Bad Hacker";
 
 	private JFrame frame;
 
@@ -64,6 +65,7 @@ public class Game extends Canvas implements Runnable {
 	public Screen screen;
 	public Player player;
 	public Controller controller;
+	private Fonts fonts;
 	
 		// Level Objects
 	public Level level;
@@ -77,21 +79,32 @@ public class Game extends Canvas implements Runnable {
 	private int xTilePosGrass = 0;
 	private int yTilePosGrass = 0;
 	
-		// Actions
-	public boolean a_is_hit = false;
-	public boolean b_is_hit = false;
-	public boolean start_is_hit = false;
-	public boolean select_is_hit = false;
-	public boolean a_is_released = true;
-	public boolean b_is_released = true;
-	public boolean start_is_released = true;
-	public boolean select_is_released = true;	
+		// Actions	
 	public boolean messageBoxOpen = false;
+	public boolean menuOpen = false;
 	private int entityIdentity;
 	private boolean freeNPC;
 	
+	private Image selector;
+	
+		// Array with images for 4 directions and 5 stages per direction
+	private Image wolfMidnaSprites[][] = new Image[4][5];
+	
+		// Array for individual tiles from spritesheet
+	private List<BufferedImage> tileset = new ArrayList<BufferedImage>();
+	
+		// Array for individual alphanumerical characters from font sheet
+	private List<BufferedImage> font = new ArrayList<BufferedImage>();
+	
+	private BufferedImage fontsheet;
+	
 		// NPC List
 	private List<NPC> NPCs = new ArrayList<NPC>();
+	
+		// Menus
+	private MenuBar startMenu;
+	private MenuBar pauseMenu;
+	private MenuBar yesNo;
 	/////////////
 	
 	// Game Constructor //
@@ -166,10 +179,10 @@ public class Game extends Canvas implements Runnable {
 					start_is_visible = true;
 			}
 			
-			if (atTitle & start_is_hit) {
+			if (atTitle & controller.start.is_hit) {
 				atTitle = false;
 				playing = true;
-				start_is_hit = false;
+				controller.start.is_hit = false;
 			}
 				
 			/*
@@ -202,7 +215,7 @@ public class Game extends Canvas implements Runnable {
 		tickCount++;
 		level.tick();
 			// Checks for actions
-		actionHandler();
+		controller.check();
 	}
 	/////////////////
 	
@@ -212,59 +225,15 @@ public class Game extends Canvas implements Runnable {
 		createLevel(levelNum);
 		controller = new Controller(this);
 			// Creates and inserts player into map at tile (12, 31) *coordinates are multiplied by 16, the size of each tile*
-		player = new Player(this, level, 12 * 16, 31 * 16, controller);
+		player = new Player(this, level, 12 * 16, 31 * 16, controller, "Link");
 		level.addEntity(player);
-		//addWarpPoint(new WarpPoint(this, 1, 10, 6, 2, 10, 5, "down"));
-		//addWarpPoint(new WarpPoint(this, 2, 10, 5, 1, 10, 6, "down"));
 			// Loads all sprite, game, and map images
 		loadImages();
+		fonts = new Fonts();
+		pauseMenu = new MenuBar(new String[] {"Controls", "Stats", "Save", "Save and Quit", "Continue"}, font);
+		startMenu = new MenuBar(new String[] {"New Game", "Load Game"}, font);
 	}
 	///////////////////////
-	
-		// Sprite images
-	private Image linkDown;
-	private Image linkDown1;
-	private Image linkDown2;
-	private Image linkLeft;
-	private Image linkLeft1;
-	private Image linkLeft2;
-	private Image linkUp;
-	private Image linkUp1;
-	private Image linkUp2;
-	private Image linkRight;
-	private Image linkRight1;
-	private Image linkRight2;
-		
-		// Array with images for 4 directions and 3 stages per direction
-	private Image linkSprites[][] = new Image[4][3];
-	
-	private Image wolfMidnaDown;
-	private Image wolfMidnaDown1;
-	private Image wolfMidnaDown2;
-	private Image wolfMidnaLeft;
-	private Image wolfMidnaLeft1;
-	private Image wolfMidnaLeft2;
-	private Image wolfMidnaLeft3;
-	private Image wolfMidnaLeft4;
-	private Image wolfMidnaUp;
-	private Image wolfMidnaUp1;
-	private Image wolfMidnaUp2;
-	private Image wolfMidnaRight;
-	private Image wolfMidnaRight1;
-	private Image wolfMidnaRight2;
-	private Image wolfMidnaRight3;
-	private Image wolfMidnaRight4;
-	
-		// Array with images for 4 directions and 5 stages per direction
-	private Image wolfMidnaSprites[][] = new Image[4][5];
-	
-		// Array for individual tiles from spritesheet
-	private List<BufferedImage> tileset = new ArrayList<BufferedImage>();
-	
-		// Array for individual alphanumerical characters from font sheet
-	private List<BufferedImage> font = new ArrayList<BufferedImage>();
-	
-	private BufferedImage fontsheet;
 	
 	// Load Images Method //
 	public void loadImages() {
@@ -286,118 +255,10 @@ public class Game extends Canvas implements Runnable {
 		} catch (IOException e) {
 			System.out.println(e);
 		}  try {
-		    linkDown = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Down.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			linkDown1 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Down1.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			linkDown2 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Down2.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-		    linkUp = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Up.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			linkUp1 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Up1.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			linkUp2 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Up2.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-		    linkLeft = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Left.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			linkLeft1 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Left1.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			linkLeft2 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Left2.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-		    linkRight = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Right.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			linkRight1 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Right1.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			linkRight2 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/Link_Right2.png"));
+		    selector = ImageIO.read(Game.class.getResourceAsStream("/selarrow.png"));
 		} catch (IOException e) {
 			System.out.println(e);
 		} try {
-			wolfMidnaDown = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Down.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaDown1 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Down1.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaDown2 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Down2.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaLeft = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Left.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaLeft1 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Left1.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaLeft2 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Left2.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaLeft3 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Left3.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaLeft4 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Left4.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaUp = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Up.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaUp1 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Up1.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaUp2 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Up2.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaRight = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Right.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaRight1 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Right1.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaRight2 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Right2.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaRight3 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Right3.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
-			wolfMidnaRight4 = ImageIO.read(Game.class.getResourceAsStream("/Sprites/WolfMidna_Right4.png"));
-		} catch (IOException e) {
-			System.out.println(e);
-		}  try {
 			fontsheet = ImageIO.read(Game.class.getResourceAsStream("/MacChicago.png"));
 		} catch (IOException e) {
 			System.out.println(e);
@@ -412,47 +273,21 @@ public class Game extends Canvas implements Runnable {
 			}
 		}
 		
-			// Loading all alphanumerical characters from fontsheet to array
-		for (int y = 0; y < fontsheet.getHeight() / 16; y++) {
-			for (int x = 0; x < fontsheet.getWidth() / 8; x++) {
-				font.add(spritesheet.getSubimage(x * 8, y * 16, 8, 16));
+			// Loading fontsheet, String sizes indicates pixel widths of characters as they appear on the fontsheet
+		String sizes = "43784648588888888448814 88888888689899888878889888 88788788478498888776889888";
+		int index = 0;
+		int row = 0;
+		
+		for (int i = 0; i < sizes.length(); i++) {
+			if (sizes.charAt(i) == ' ') {
+				index = 0;
+				row++;
+			} else {
+				int size = ((int) sizes.charAt(i)) - 48;
+				font.add(fontsheet.getSubimage(index, row * 16, size, 16));
+				index += size;
 			}
-		}
-		
-			// Assigning sprite images to corresponding positions in arrays
-		linkSprites[0][0] = linkUp;
-		linkSprites[0][1] = linkUp1;
-		linkSprites[0][2] = linkUp2;
-		linkSprites[1][0] = linkLeft;
-		linkSprites[1][1] = linkLeft1;
-		linkSprites[1][2] = linkLeft2;
-		linkSprites[2][0] = linkDown;
-		linkSprites[2][1] = linkDown1;
-		linkSprites[2][2] = linkDown2;
-		linkSprites[3][0] = linkRight;
-		linkSprites[3][1] = linkRight1;
-		linkSprites[3][2] = linkRight2;
-		
-		wolfMidnaSprites[0][0] = wolfMidnaUp;
-		wolfMidnaSprites[0][1] = wolfMidnaUp1;
-		wolfMidnaSprites[0][2] = wolfMidnaUp2;
-		wolfMidnaSprites[0][3] = wolfMidnaUp1;
-		wolfMidnaSprites[0][4] = wolfMidnaUp2;
-		wolfMidnaSprites[1][0] = wolfMidnaLeft;
-		wolfMidnaSprites[1][1] = wolfMidnaLeft1;
-		wolfMidnaSprites[1][2] = wolfMidnaLeft2;
-		wolfMidnaSprites[1][3] = wolfMidnaLeft3;
-		wolfMidnaSprites[1][4] = wolfMidnaLeft4;
-		wolfMidnaSprites[2][0] = wolfMidnaDown;
-		wolfMidnaSprites[2][1] = wolfMidnaDown1;
-		wolfMidnaSprites[2][2] = wolfMidnaDown2;
-		wolfMidnaSprites[2][3] = wolfMidnaDown1;
-		wolfMidnaSprites[2][4] = wolfMidnaDown2;
-		wolfMidnaSprites[3][0] = wolfMidnaRight;
-		wolfMidnaSprites[3][1] = wolfMidnaRight1;
-		wolfMidnaSprites[3][2] = wolfMidnaRight2;
-		wolfMidnaSprites[3][3] = wolfMidnaRight3;
-		wolfMidnaSprites[3][4] = wolfMidnaRight4;	
+		}	
 	}
 	
 	// Initialize when Loading Game Method //
@@ -461,11 +296,12 @@ public class Game extends Canvas implements Runnable {
 		screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/Sprite_Sheet.png"));
 		createLevel(levelNum);
 		controller = new Controller(this);
-		player = new Player(this, level, player.xPos1, player.yPos1, controller);
+		player = new Player(this, level, player.xPos1, player.yPos1, controller, "Link");
 		level.addEntity(player);
-		//addWarpPoint(new WarpPoint(this, 1, 5, 1, 2, 10, 5, "down"));
-		//addWarpPoint(new WarpPoint(this, 2, 10, 5, 1, 5, 1, "down"));
 		loadImages();
+		fonts = new Fonts();
+		pauseMenu = new MenuBar(new String[] {"Controls", "Stats", "Save", "Save and Quit", "Continue"}, font);
+		startMenu = new MenuBar(new String[] {"Load Game", "New Game"}, font);
 	}
 	//////////////////////
 	
@@ -523,76 +359,62 @@ public class Game extends Canvas implements Runnable {
 	// Create Levels Method //
 	public void createLevel(int levelNum) {
 		NPCs.clear();
-		
+		String name;
 			// Decides which level player is currently in
 		switch (levelNum) {
-		// Sacred Grove Temple
 			/* Each case creates two layers, a base layer and a top layer (rendered over the player), 
 			 * the layers are a set of strings with numbers corresponding to a tile value from a spritesheet, 
 			 * rows are indicated with slashes, see class Map and ImageToMap for details.
 			 * All other level specific objects are added here
 			 */
-		case 1: layer1 = new Map("1   2   3   1   2   3   1   2   3   1   2   3   1   2   3   1   2   3   1   2   3   1   2   3   1     1/4   5   6   4   5   6   4   5   6   4   5   6   4   5   6   4   5   6   4   5   6   4   5   6   4     4/7   8   9   7   8   9   7   8   9   7   8   9   7   8   9   7   8   9   7   8   9   7   8   9   7     7/10  11  12  13  14  15  16  14  15  16  14  15  16  14  15  16  14  15  16  14  15  17  18  11  19   19/20  21  22  23  24  25  26  24  25  26  24  25  26  24  25  26  24  25  26  24  25  27  20  21  22   22/28  29  30  31  32  32  33  34  35  35  35  35  35  35  35  34  34  35  36  32  32  37  28  29  30   30/1   2   3   38  39  33  40  41  41  42  41  43  44  41  45  45  45  45  46  36  47  48  1   2   3     3/4   5   6   4   49  50  41  43  44  41  51  41  41  52  45  45  52  41  45  53  54  6   4   5   6     6/7   8   9   7   55  50  51  41  41  52  56  57  58  59  60  51  41  61  62  53  63  9   7   8   9     9/10  11  12  13  64  50  65  66  67  68  69  70  71  72  73  74  75  76  77  53  78  79  80  11  81   81/20  21  22  23  82  50  83  84  85  84  86  87  88  89  90  91  77  92  93  53  94  95  20  21  22   22/28  29  30  31  32  96  97  98  99  41  100 101 102 103 104 45  45  45  105 106 32  37  28  29  30   30/1   2   107 38  39  32  96  97  108 45  77  75  45  43  51  42  45  105 106 32  47  48  109 2   3     3/4   5   6   4   49  32  32  96  97  99  110 77  45  41  41  111 105 106 32  32  54  6   4   5   6     6/7   8   9   7   55  32  32  32  96  112 112 113 45  114 112 112 106 32  32  32  63  9   7   8   9     9/10  11  81  10  115 116 117 118 116 117 119 120 121 122 123 116 117 118 116 117 124 81  10  11  81   81/20  21  22  20  21  22  20  21  125 126 127 128 45  129 130 131 132 21  22  20  21  22  20  21  22   22/28  29  30  28  133 134 135 135 136 137 138 139 45  140 141 142 143 135 135 144 145 30  28  29  30   30/1   146 147 148 149 150 151 152 151 153 154 155 45  156 157 158 151 159 151 160 161 147 148 162 3     3/4   163 164 165 149 166 151 151 151 167 168 169 170 171 168 151 151 151 151 172 161 164 165 173 6     6/7   55  32  33  149 166 153 153 153 153 168 174 175 176 168 153 153 153 153 172 161 36  32  63  9     9/3   177 39  50  149 178 179 180 181 179 168 182 183 184 168 180 181 179 179 185 161 53  47  186 1     1/6   4   49  187 149 188 98  189 190 45  191 192 193 194 191 45  45  45  45  195 161 196 54  6   4     4/9   7   55  187 149 188 45  197 198 199 75  200 201 202 45  45  45  43  44  195 161 196 63  9   7     7/81  203 64  50  149 188 45  204 205 206 77  44  41  45  45  207 208 209 41  195 161 53  78  210 10   10/22  211 82  50  149 188 45  212 213 214 42  41  52  45  45  215 213 216 67  195 161 53  94  217 20   20/30  31  32  187 149 188 43  218 219 220 41  66  45  45  43  221 222 223 85  195 161 196 32  37  28   28/3   177 39  50  149 188 41  41  41  41  52  45  45  45  41  41  111 98  99  195 161 53  47  186 1     1/6   4   49  187 149 188 66  67  66  67  68  45  224 45  61  51  41  61  62  195 161 196 54  6   4     4/9   7   55  187 149 188 84  85  45  45  225 226 227 228 229 74  75  76  77  195 161 196 63  9   7     7/81  203 64  50  149 188 98  99  45  45  230 231 232 233 234 91  77  92  93  195 161 53  78  210 10   10/22  211 82  50  149 188 45  45  45  45  235 236 237 238 239 45  45  45  45  195 161 53  94  217 20   20/30  31  32  187 149 188 45  45  45  45  240 241 242 243 244 245 45  45  45  195 161 196 32  37  28   28/3   177 39  50  149 188 43  51  42  45  246 247 248 249 250 45  43  51  42  195 161 53  47  186 1     1/6   4   49  187 149 188 45  251 251 252 45  45  45  41  42  41  43  44  41  195 161 196 54  6   4     4/9   7   55  187 149 188 45  253 254 251 45  45  45  44  41  51  41  41  52  195 161 196 63  9   7     7/81  203 64  50  149 188 45  251 251 255 45  45  45  43  44  45  41  41  42  195 161 53  78  210 10   10/22  211 82  50  149 188 45  256 257 258 252 45  75  41  41  45  43  44  41  195 161 53  94  217 20   20/30  31  32  187 149 188 45  41  42  41  259 260 261 262 259 45  41  41  52  195 161 196 32  37  28   28/3   177 39  50  149 188 45  44  41  51  263 264 264 264 263 45  66  67  68  195 161 53  47  186 1     1/6   4   49  187 149 188 45  265 266 45  267 264 264 264 267 45  265 266 45  195 161 196 54  6   4     4/9   7   55  187 149 268 269 260 262 303 269 260 261 262 270 269 260 262 303 271 161 196 63  9   7     7/81  203 64  50  149 272 264 264 264 264 264 264 264 273 274 275 264 264 264 276 161 53  78  210 10   10/22  211 82  50  149 272 264 264 264 264 264 264 264 264 264 264 264 264 264 276 161 53  94  217 20   20/30  31  32  187 149 272 264 264 264 264 264 264 264 264 264 264 264 264 264 276 161 196 32  37  28   28/3   177 39  50  149 272 264 264 264 264 264 264 264 264 264 264 264 264 264 276 161 53  47  186 1     1/6   4   49  187 277 278 135 135 135 135 135 135 135 135 135 135 135 135 135 279 280 196 54  6   4     4/9   7   55  187 281 151 152 151 152 151 152 151 152 151 152 151 152 152 151 152 282 196 63  9   7     7/81  203 64  50  281 151 151 151 167 151 151 151 167 151 151 151 167 151 151 167 282 53  78  210 10   10/22  211 82  50  281 153 153 153 153 153 153 153 153 153 153 153 153 153 153 153 282 53  94  217 20   20/30  31  32  187 283 284 118 285 284 118 286 287 118 286 284 118 285 287 118 286 288 196 32  37  28   28/");				 
-				layer2 = new Map("289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 290 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 291 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 292 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 293 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 294 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 295 296 289 289 289 289 289 289 295 296 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 297 298 299 289 289 289 289 289 297 298 299 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 300 301 302 289 289 289 289 289 300 301 302 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289 289/");
-				level = new Level("map1", layer1, layer2);
-			   	screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/Spritesheet(Sacred_Grove_Temple).png")); 	 
-			  // Message Boxes
-				MessageBox sign1 = new MessageBox(14, 42, "The guardians awaken to the smell of bubble tea.");
+		case 1: name = "Sacred_Grove_Temple";
+				setupMap(name);
+			// Message Boxes
+				MessageBox sign1 = new MessageBox(14, 42, "If you were to call someone, and their phone were off, then they would not answer the phone. A stone in the hand kills two birds in the bush. Don't take the blue acid! Man, this is one cool message box system.");
 				level.addMessageBox(sign1);
-					break;
+			// NPCs
+				NPC genericNPC = new NPC(this, level, 14, 34, "Don't take the blue acid!", "Link");
+				NPCs.add(genericNPC);
+				level.addEntity(genericNPC);
+			break;
 					
-		// Ordon Village Link's House
-		case 2:	layer1 = new Map("0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
-							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
-							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
-							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
-							   + "0    0   0   0   0   9   9   9   30  49  50  51  52  31  9   9   9   9   9   9   9   9   9   9   9   9   9   0   0   0   0   0/"
-							   + "0    0   0   0   0   1   2   2   30  41  42  43  44  31  2   2   2   2   2   2   2   2   2   2   2   2   3   0   0   0   0   0/"
-							   + "0    0   0   0   0   4   5   5   26  28  37  28  28  29  5   5   5   5   5   5   5   5   5   5   5   5   6   0   0   0   0   0/"
-							   + "0    0   0   0   0   4   5   5   17  9   9   9   16  16  17  5   5   5   17  9   9   9   16  16  17  5   6   0   0   0   0   0/"
-							   + "0    0   0   0   0   4   9   9   17  9   17  9   9   16  17  9   9   9   17  9   17  9   9   16  17  9   6   0   0   0   0   0/"
-							   + "0    0   0   0   0   4   17  9   17  9   9   17  16  16  9   17  17  9   17  9   9   17  16  16  9   17  6   0   0   0   0   0/"
-							   + "0    0   0   0   0   4   5   9   9   17  9   9   16  17  17  5   5   9   9   17  9   9   16  17  17  5   6   0   0   0   0   0/"
-							   + "0    0   0   0   0   4   5   5   9   9   20  21  16  16  5   5   5   5   9   9   20  21  16  16  5   5   6   0   0   0   0   0/"
-							   + "0    0   0   0   0   7   2   2   2   2   24  25  2   2   2   2   2   2   2   2   24  25  2   2   2   2   8   0   0   0   0   0/"
-							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
-							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
-							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/"
-							   + "0    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0/");
-		
-				layer2 = new Map("-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/" 
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  53  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1   18  19 -1  -1  -1  -1  -1  -1  -1  -1   18  19 -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/"
-							   + "-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1/");
-				level = new Level("map2", layer1, layer2);
-				
-				// Message Boxes
+		case 2: name = "Ordon_Village";
+				setupMap(name);
+			// Message Boxes
 				MessageBox sign2 = new MessageBox(12, 7, "Hello World!");
 				level.addMessageBox(sign2);
 				
-				// NPCs
-				NPC genericNPC = new NPC(this, level, 16 * 16, 9 * 16 - 8, "Don't take the blue acid!");
-				NPCs.add(genericNPC);
-				level.addEntity(genericNPC);
-					break;
+			// NPCs
+				NPC genericNPC2 = new NPC(this, level, 16 * 16, 9 * 16 - 8, "Don't take the blue acid!", "Link");
+				NPCs.add(genericNPC2);
+				level.addEntity(genericNPC2);
+			break;
 		}
 	}
 	//////////////////////////
+	
+	// Setup Map Method //
+	private void setupMap(String name) {
+		String mapText1 = "";
+		String mapText2 = "";
+		try {
+			File file = new File("/Users/Richard/Documents/workspace/MITAdventures/res/Spritesheet(" + name + ")_mapText.txt");
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+			try {
+				mapText1 = br.readLine();
+				mapText2 = br.readLine();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		} catch (FileNotFoundException e2) {
+			e2.printStackTrace();
+		}
+			layer1 = new Map(mapText1);
+			layer2 = new Map(mapText2);
+			level = new Level(name, layer1, layer2);
+		   	screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/Spritesheet(" + name + ").png"));
+	}
+	//////////////////////
 	
 	// Start Method //
 	public synchronized void start() {
@@ -610,45 +432,41 @@ public class Game extends Canvas implements Runnable {
 	}
 	/////////////////
 	
-	// Action Button Handler //
-	public void actionHandler() {
-		if (a_is_released) {
-			if (controller.a_button.isPressed()) {
-				a_is_hit = true;
-				a_is_released = false;
-			}
-		} else if (controller.a_button.isPressed() == false) {
-			a_is_released = true;
+	// Render and Tick Function of Pause Menu //
+	public void renderPauseMenu(Graphics g) {
+		if (controller.start.is_hit & menuOpen) {
+			controller.start.is_hit = false;
+			menuOpen = false;
+			player.canMove = true;
 		}
-		
-		if (start_is_released) {
-			if (controller.start.isPressed()) {
-				start_is_hit = true;
-				start_is_released = false;
-			} else if (controller.start.isPressed() == false) {
-				start_is_released = true;
-			}
-		}
-		
-		if (select_is_released) {
-			if (controller.select.isPressed()) {
-				select_is_hit = true;
-				select_is_released = false;
-			} else if (controller.select.isPressed() == false) {
-				select_is_released = true;
-			}
-		}
-		
-		if (b_is_released) {
-			if (controller.b_button.isPressed()) {
-				b_is_hit = true;
-				b_is_released = false;
-			}
-		} else if (controller.b_button.isPressed() == false) {
-			b_is_released = true;
+		if (controller.start.is_hit || menuOpen) {
+			controller.start.is_hit = false;
+			menuOpen = true;
+			renderMenuBox(pauseMenu, g);
 		}
 	}
-	///////////////////////////
+	////////////////////////////////////////////
+	
+	// Render Menu Box Method //
+	public void renderMenuBox(MenuBar menu, Graphics g) {
+		g.drawImage(messageBox, (WIDTH - (menu.width / 3)) / 2 * 3, (HEIGHT - menu.height) / 2 * 3 , menu.width, menu.height * 3, null);
+		System.out.println("X: " + ((WIDTH - menu.width) / 2) + " Y: " + ((HEIGHT - menu.height) / 2));
+		System.out.println(menu.width);
+		for (int i = 0; i < menu.getOptions().length; i++)
+			fonts.render(menu.getOptions()[i], screen, (WIDTH - menu.width / 3) / 2 + 39, (HEIGHT - menu.height) / 2 + (16 * i) + 5, WIDTH, 1, g, font);
+		menuOpen = true;
+		player.canMove = false;
+		g.drawImage(selector, (WIDTH - menu.width / 3) / 2 * 3 - 16, (HEIGHT - menu.height) / 2 * 3 + (48 * menu.getSelected()) + 18, 16, 16, null);
+		if (controller.up.is_hit) {
+			controller.up.is_hit = false;
+			menu.selectUp();
+		}
+		if (controller.down.is_hit) {
+			controller.down.is_hit = false;
+			menu.selectDown();
+		}
+	}
+	////////////////////////////
 	
 	// Render Message Box Method //
 	public void renderMessageBox(Graphics g) {
@@ -658,13 +476,17 @@ public class Game extends Canvas implements Runnable {
 		boolean toRight = false;
 		boolean toLeft = false;
 		int index = 0;
-		Fonts fonts = new Fonts();
 		if (player.numSteps == 0) {
-			if (a_is_hit & messageBoxOpen) {
-				messageBoxOpen = false;
-				a_is_hit = false;
-				player.canMove = true;
-				this.freeNPC = true;
+			if (controller.a_button.is_hit & messageBoxOpen) {
+				controller.a_button.is_hit = false;
+				if (fonts.messageComplete()) {
+					messageBoxOpen = false;
+					player.canMove = true;
+					this.freeNPC = true;
+					fonts.resetBoxIndex();
+				} else {
+					fonts.nextBoxIndex();
+				}
 			}
 			for (MessageBox m : level.messageBoxes) {
 				if (player.direction == 1 & m.getYPos() + 1 == player.getCurrentYTile() & m.getXPos() == player.getCurrentXTile())
@@ -675,11 +497,11 @@ public class Game extends Canvas implements Runnable {
 					toRight = true;
 				if (player.direction == 2 & m.getYPos() == player.getCurrentYTile() & m.getXPos() - 1 == player.getCurrentXTile())
 					toLeft = true;
-				if ((above || below || toRight || toLeft) & (a_is_hit || messageBoxOpen)) {
+				if ((above || below || toRight || toLeft) & (controller.a_button.is_hit || messageBoxOpen)) {
 						g.drawImage(messageBox, 0, 384, getWidth(), getHeight() - 384, null);
-						fonts.render(m.getMessage(), screen, 0, 8, g, font);
+						fonts.render(m.getMessage(), screen, 16, 132, WIDTH, 4, g, font);
 						messageBoxOpen = true;
-						a_is_hit = false;
+						controller.a_button.is_hit = false;
 						player.canMove = false;
 				} else {
 					for (NPC npc : NPCs) {
@@ -693,11 +515,11 @@ public class Game extends Canvas implements Runnable {
 								toRight = true;
 							if (player.direction == 2 & player.getCurrentYTile() == npc.getCurrentYTile() & player.getCurrentXTile() - 1 == npc.getCurrentXTile())
 								toLeft = true;
-							if ((above || below || toRight || toLeft) & (a_is_hit || messageBoxOpen)) {
+							if ((above || below || toRight || toLeft) & (controller.a_button.is_hit || messageBoxOpen)) {
 									g.drawImage(messageBox, 0, 384, getWidth(), getHeight() - 384, null);
-									fonts.render(npc.getMessage(), screen, screen.xOffset + 5, screen.yOffset + 84, g, font);
+									fonts.render(npc.getMessage(), screen, 16, 132, WIDTH, 4, g, font);
 									messageBoxOpen = true;
-									a_is_hit = false;
+									controller.a_button.is_hit = false;
 									player.canMove = false;
 									if (above)
 										npc.setDirection("down");
@@ -716,8 +538,7 @@ public class Game extends Canvas implements Runnable {
 								freeNPC = false;
 							}
 						}
-					if (a_is_hit) 
-						a_is_hit = false;
+					controller.a_button.is_hit = false;
 					}
 				}
 			}
@@ -725,20 +546,14 @@ public class Game extends Canvas implements Runnable {
 	}
 	///////////////////////////////
 	
-	// Render Player Method //
-	public void renderPlayer(Graphics g) {
-		int dir = player.direction - 1;
-		int stage = player.spriteStage;
-			// Renders player in center of screen facing proper direction and at proper sprite stage
-		g.drawImage(linkSprites[dir][stage], 6 * 16 * SCALE + 3, 4 * 16 * SCALE + 12, 14 * SCALE, 28 * SCALE, null);
+	// Render Characters //
+	public void renderCharacters(Graphics g) {
+		for (Entity e : level.entities) {
+			int dir = e.direction - 1;
+			int stage  = e.spriteStage;
+			g.drawImage(e.spriteSet.sprites[dir][stage], 6 * 16 * SCALE + 3, 4 * 16 * SCALE + 12, 14 * SCALE, 28 * SCALE, null);
+		}		
 	}
-	//////////////////////////
-	
-	// Render Menu Method //
-	public void renderMenu() {
-			// *TO BE COMPLETED*
-	}
-	////////////////////////////
 	
 	// Render Layer Method //
 	public void renderLayer(Screen screen, int xOffset, int yOffset, Map layer, Graphics g) {
@@ -788,7 +603,7 @@ public class Game extends Canvas implements Runnable {
 		if (playing) {
 				// Renders Layer 1, then the player, then Layer 2, then messages if there any
 			renderLayer(screen, xOffset, yOffset, layer1, g);
-			renderPlayer(g);
+			renderCharacters(g);
 			renderLayer(screen, xOffset, yOffset, layer2, g);
 			renderMessageBox(g);
 		}
@@ -803,6 +618,9 @@ public class Game extends Canvas implements Runnable {
 			if (start_is_visible)
 				g.drawImage(startbar, 15, 300, getWidth(), 12, null);
 		}
+		
+		if (!atTitle)
+			renderPauseMenu(g);
 		
 		g.dispose();
 		bs.show();
