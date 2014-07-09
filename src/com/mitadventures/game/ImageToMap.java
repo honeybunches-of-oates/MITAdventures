@@ -287,7 +287,7 @@ public class ImageToMap {
 		}
 
 	public static void main(String[] args) {
-		ImageToMap imageToMap = new ImageToMap("Sacred_Grove_Temple");
+		ImageToMap imageToMap = new ImageToMap("Ordon_Village_Main");
 		imageToMap.makeSpriteSheet();
 		imageToMap.saveMapText();
 	}

@@ -1,6 +1,6 @@
 package com.mitadventures.game.graphics;
 
-import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -8,15 +8,14 @@ import javax.imageio.ImageIO;
 public class PlayerSpriteSet extends SpriteSet{
 
 	public PlayerSpriteSet(String name) {
-		super(name);
-		sprites = new Image[4][3];
+		super(name, 4, 3);
 	}
 
 	public void loadSpriteSet() {
 		try {
-			sprites[0][0] = ImageIO.read(PlayerSpriteSet.class.getResourceAsStream("/res/Sprites/" + name + "_Up.png"));
+			sprites[0][0] = ImageIO.read(PlayerSpriteSet.class.getResourceAsStream("/Sprites/" + name + "_Up.png"));
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println(e);
 		}  try {
 			sprites[0][1] = ImageIO.read(PlayerSpriteSet.class.getResourceAsStream("/Sprites/" + name + "_Up1.png"));
 		} catch (IOException e) {
@@ -38,7 +37,7 @@ public class PlayerSpriteSet extends SpriteSet{
 		} catch (IOException e) {
 			System.out.println(e);
 		}  try {
-			sprites[2][0] = ImageIO.read(PlayerSpriteSet.class.getResourceAsStream("/Sprites/" + name + "_Up.png"));
+			sprites[2][0] = ImageIO.read(PlayerSpriteSet.class.getResourceAsStream("/Sprites/" + name + "_Down.png"));
 		} catch (IOException e) {
 			System.out.println(e);
 		}  try {

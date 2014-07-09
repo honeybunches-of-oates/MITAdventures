@@ -17,7 +17,7 @@ public class NPC extends Actor {
 
 	// NPC Constructor //
 	public NPC(Game game, Level level, int xPos, int yPos, String msg, String type) {
-		super(xPos * 16, yPos * 16 - 8, level, type);
+		super(xPos * 16, yPos * 16, level, type);
 		this.game = game;
 		super.setMessage(msg);
 	}
@@ -34,10 +34,10 @@ public class NPC extends Actor {
 			if (stride == 0)
 				sprite = 1;
 			else
-				sprite = 3;
+				sprite = 2;
 		// stage two of animation
 		else
-			sprite = 2;
+			sprite = 0;
 		spriteStage = sprite;
 	}
 	///////////////////////////

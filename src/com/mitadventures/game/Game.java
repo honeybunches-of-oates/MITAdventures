@@ -43,7 +43,7 @@ public class Game extends Canvas implements Runnable {
 	public static final int WIDTH = 208;
 	public static final int HEIGHT = 176;
 	public static final int SCALE = 3;
-	public static final String NAME = "MIT Adventures: Tim vs. The Bad Hacker";
+	public static final String NAME = "MIT Adventures: Tim vs. The Mad Hacker";
 
 	private JFrame frame;
 
@@ -86,9 +86,6 @@ public class Game extends Canvas implements Runnable {
 	private boolean freeNPC;
 	
 	private Image selector;
-	
-		// Array with images for 4 directions and 5 stages per direction
-	private Image wolfMidnaSprites[][] = new Image[4][5];
 	
 		// Array for individual tiles from spritesheet
 	private List<BufferedImage> tileset = new ArrayList<BufferedImage>();
@@ -247,7 +244,7 @@ public class Game extends Canvas implements Runnable {
 		} catch (IOException e) {
 			System.out.println(e);
 		} try {
-		    messageBox = ImageIO.read(Game.class.getResourceAsStream("/MessageBox.png"));
+		    messageBox = ImageIO.read(Game.class.getResourceAsStream("/MessageBox1.png"));
 		} catch (IOException e) {
 			System.out.println(e);
 		}  try {
@@ -287,7 +284,7 @@ public class Game extends Canvas implements Runnable {
 				font.add(fontsheet.getSubimage(index, row * 16, size, 16));
 				index += size;
 			}
-		}	
+		}
 	}
 	
 	// Initialize when Loading Game Method //
@@ -321,12 +318,12 @@ public class Game extends Canvas implements Runnable {
 		for (int i = 0; i < warpPoints.size(); i++) {
 			if (warpPoints.get(i).warp) {
 				this.levelNum = warpPoints.get(i).level2;
+				createLevel(levelNum);
 			    player.setCurrentXTile(warpPoints.get(i).xTile2);
 				player.setCurrentYTile(warpPoints.get(i).yTile2);
 				player.setDirection(warpPoints.get(i).playerDir);
 				warpPoints.get(i).warp = false;
 				player.isWalking = true;
-				createLevel(levelNum);
 				level.addEntity(player);
 			}
 		}
@@ -342,7 +339,6 @@ public class Game extends Canvas implements Runnable {
 		
 		this.xTilePosGrass = player.getCurrentXTile();
 		this.yTilePosGrass = player.getCurrentYTile();
-		
 		if (layer1.getTile(xTilePosGrass, yTilePosGrass) == 38) {
 			layer1.replaceTile(xTilePosGrass, yTilePosGrass, 39);
 			this.tilechange = true;
@@ -376,16 +372,21 @@ public class Game extends Canvas implements Runnable {
 				NPC genericNPC = new NPC(this, level, 14, 34, "Don't take the blue acid!", "Link");
 				NPCs.add(genericNPC);
 				level.addEntity(genericNPC);
+			// Warp Points
+				WarpPoint warp1 = new WarpPoint(this, 1, 16, 42, 2, 15, 15, "down");
+				addWarpPoint(warp1);
+				
 			break;
 					
-		case 2: name = "Ordon_Village";
+		case 2: name = "Ordon_Village_Main";
+				System.out.println(name);
 				setupMap(name);
 			// Message Boxes
 				MessageBox sign2 = new MessageBox(12, 7, "Hello World!");
 				level.addMessageBox(sign2);
 				
 			// NPCs
-				NPC genericNPC2 = new NPC(this, level, 16 * 16, 9 * 16 - 8, "Don't take the blue acid!", "Link");
+				NPC genericNPC2 = new NPC(this, level, 16, 9, "Don't take the blue acid!", "Link");
 				NPCs.add(genericNPC2);
 				level.addEntity(genericNPC2);
 			break;
@@ -450,8 +451,6 @@ public class Game extends Canvas implements Runnable {
 	// Render Menu Box Method //
 	public void renderMenuBox(MenuBar menu, Graphics g) {
 		g.drawImage(messageBox, (WIDTH - (menu.width / 3)) / 2 * 3, (HEIGHT - menu.height) / 2 * 3 , menu.width, menu.height * 3, null);
-		System.out.println("X: " + ((WIDTH - menu.width) / 2) + " Y: " + ((HEIGHT - menu.height) / 2));
-		System.out.println(menu.width);
 		for (int i = 0; i < menu.getOptions().length; i++)
 			fonts.render(menu.getOptions()[i], screen, (WIDTH - menu.width / 3) / 2 + 39, (HEIGHT - menu.height) / 2 + (16 * i) + 5, WIDTH, 1, g, font);
 		menuOpen = true;
@@ -546,12 +545,41 @@ public class Game extends Canvas implements Runnable {
 	}
 	///////////////////////////////
 	
+	// OnScreen Check //
+	public boolean onScreen(Entity e) {
+		if (player.xPos + (WIDTH / 2) + 16 > e.xPos & player.xPos - (WIDTH / 2) - 16 < e.xPos & player.yPos + (HEIGHT / 2) + 32 > e.yPos & player.yPos - (HEIGHT / 2) - 32 < e.yPos)
+			return true;
+		else
+			return false;
+	}
+	////////////////////
+	
+	// Overlap Check Sort //
+	public void overlapCheckSort() {
+		boolean sorted;
+		do {
+			sorted = true;	
+			for (int i = 0; i < level.entities.size() - 1; i++) {
+				if (onScreen(level.entities.get(i))) {		
+						if (level.entities.get(i).yPos > level.entities.get(i + 1).yPos) {
+							Entity temp = level.entities.get(i);
+							level.entities.set(i, level.entities.get(i + 1));
+							level.entities.set(i + 1, temp);	
+							sorted = false;
+						}	
+				}	
+			}
+		} while (!sorted);
+	}
+	///////////////////
+	
 	// Render Characters //
 	public void renderCharacters(Graphics g) {
+		overlapCheckSort();
 		for (Entity e : level.entities) {
-			int dir = e.direction - 1;
-			int stage  = e.spriteStage;
-			g.drawImage(e.spriteSet.sprites[dir][stage], 6 * 16 * SCALE + 3, 4 * 16 * SCALE + 12, 14 * SCALE, 28 * SCALE, null);
+			if (onScreen(e)) {
+				g.drawImage(e.spriteSet.sprites[e.direction - 1][e.spriteStage], (6 * 16 + (e.xPos - player.xPos)) * SCALE + 3, (4 * 16 + (e.yPos - player.yPos)) * SCALE + 12, 14 * SCALE, 28 * SCALE, null);
+			}
 		}		
 	}
 	
