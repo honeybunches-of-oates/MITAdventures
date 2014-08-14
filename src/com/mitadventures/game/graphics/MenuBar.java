@@ -27,7 +27,7 @@ public class MenuBar {
 	}
 	
 	public void setDimensions() {
-		height = numOptions * 16 + 3;
+		height = numOptions * 48 - 24;
 		
 		int maxWidth = 0;
 		for (int j = 0; j < numOptions; j++) {
@@ -43,7 +43,7 @@ public class MenuBar {
 			}
 			maxWidth = Math.max(width, maxWidth);
 		}
-		this.width = maxWidth + 12;
+		this.width = maxWidth;
 	}
 	
 	public void selectUp() {

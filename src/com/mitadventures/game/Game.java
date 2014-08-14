@@ -33,6 +33,7 @@ import com.mitadventures.game.graphics.SpriteSheet;
 import com.mitadventures.game.level.Level;
 import com.mitadventures.game.level.Map;
 import com.mitadventures.game.level.WarpPoint;
+import com.mitadventures.game.level.tiles.AnimatedTile;
 
 public class Game extends Canvas implements Runnable {
 
@@ -42,7 +43,7 @@ public class Game extends Canvas implements Runnable {
 		// Size of Game Window
 	public static final int WIDTH = 208;
 	public static final int HEIGHT = 176;
-	public static final int SCALE = 3;
+	public static final int SCALE = 3; 
 	public static final String NAME = "MIT Adventures: Tim vs. The Mad Hacker";
 
 	private JFrame frame;
@@ -50,22 +51,38 @@ public class Game extends Canvas implements Runnable {
 		// Refers to running program
 	public boolean running = false;
 	public int tickCount = 0;
+	private Timer timer;
 	
 		// Game Images
 	private Image titlescreen;
 	private Image startbar;
 	private Image messageBox;
+	private Image startBox_middle;
+	private Image startBox_bottom;
+	private Image startBox_top;
+	private Image startBox_right;
+	private Image startBox_left;
+	private Image startBox_bottomleft;
+	private Image startBox_topleft;
+	private Image startBox_bottomright;
+	private Image startBox_topright;
+	private Image selector;
+	private Image continueArrow;
+	private Image animationSheet;
+	private Image solidTileSheet;
 	
 		// Game States
 	private boolean atTitle = true;
 	private boolean playing = false;
 	private boolean start_is_visible = false;
+	private boolean atStartMenu = false;
 	
 		// Game Objects
 	public Screen screen;
 	public Player player;
 	public Controller controller;
 	private Fonts fonts;
+	private int quarterseconds;
 	
 		// Level Objects
 	public Level level;
@@ -85,10 +102,10 @@ public class Game extends Canvas implements Runnable {
 	private int entityIdentity;
 	private boolean freeNPC;
 	
-	private Image selector;
-	
 		// Array for individual tiles from spritesheet
 	private List<BufferedImage> tileset = new ArrayList<BufferedImage>();
+	
+	private List<AnimatedTile> animationSet = new ArrayList<AnimatedTile>();
 	
 		// Array for individual alphanumerical characters from font sheet
 	private List<BufferedImage> font = new ArrayList<BufferedImage>();
@@ -134,12 +151,15 @@ public class Game extends Canvas implements Runnable {
 
 		int ticks = 0;
 		int frames = 0;
-
+		// resets every minute
+		quarterseconds = 0;
+		
 		long lastTimer = System.currentTimeMillis();
+		long lastTimer2 = System.currentTimeMillis();
 		double delta = 0;
 		
 			// Initializes game data
-		init();
+		initStart();
 
 		while (running) {
 			long now = System.nanoTime();
@@ -165,43 +185,33 @@ public class Game extends Canvas implements Runnable {
 				render();
 			}
 			
+			if (System.currentTimeMillis() - lastTimer2 >= 250) {
+				lastTimer2 += 250;
+				quarterseconds++;
+				if (quarterseconds > 60)
+					quarterseconds = 0;
+			}
+			
 			if (System.currentTimeMillis() - lastTimer >= 1000) {
 				lastTimer += 1000;
-				System.out.println(frames + " fps, " + ticks + " tps");
+				System.out.println(frames + " fps, " + ticks + " tps, " + timer.getTime());
 				frames = 0;
 				ticks = 0;
 				if (start_is_visible)
 					start_is_visible = false;
 				else if (!start_is_visible)
 					start_is_visible = true;
+				timer.tick();
 			}
 			
 			if (atTitle & controller.start.is_hit) {
-				atTitle = false;
-				playing = true;
 				controller.start.is_hit = false;
-			}
-				
-			/*
-			 * SAVE METHOD, NOT BEING USED AT THE MOMENT
-			if (start_is_hit) {
-				saveGame();
-				start_is_hit = false;
+				atStartMenu = true;
+				start_is_visible = false;
 			}
 			
-			if (select_is_hit) {
-				stop();
-				this.frame.removeAll();
-				saveGame();
-			}
-			
-			if (b_is_hit) {
-				loadGame();
-				init_load();
-				System.out.println("loading");
-				b_is_hit = false;
-			}
-			*/
+			if (atTitle & atStartMenu)
+				tickStartMenu();
 		}
 	}
 	////////////////
@@ -210,27 +220,45 @@ public class Game extends Canvas implements Runnable {
 	public void tick() {
 			// Ticks game/level
 		tickCount++;
-		level.tick();
+		if (playing)
+			level.tick();
 			// Checks for actions
 		controller.check();
 	}
 	/////////////////
 	
+	// Initialize Start Method //
+	public void initStart() {
+		loadImages();
+		controller = new Controller(this);
+		startMenu = new MenuBar(new String[] {"Continue", "New Game"}, font);
+		pauseMenu = new MenuBar(new String[] {"Controls", "Stats", "Save", "Save and Quit", "Continue"}, font);
+		fonts = new Fonts();
+		timer = new Timer();
+	}
+	/////////////////////////////
+	
 	// Initialize Method //
 	public void init() {
 			// Retrieves level map data
 		createLevel(levelNum);
-		controller = new Controller(this);
 			// Creates and inserts player into map at tile (12, 31) *coordinates are multiplied by 16, the size of each tile*
 		player = new Player(this, level, 12 * 16, 31 * 16, controller, "Link");
 		level.addEntity(player);
 			// Loads all sprite, game, and map images
-		loadImages();
-		fonts = new Fonts();
-		pauseMenu = new MenuBar(new String[] {"Controls", "Stats", "Save", "Save and Quit", "Continue"}, font);
-		startMenu = new MenuBar(new String[] {"New Game", "Load Game"}, font);
 	}
 	///////////////////////
+	
+	// Initialize when Loading Game Method //
+	public void initLoad() {
+		init();
+		loadGame();
+			// Almost same as init() method, but used for loading saved game files, not starting new game files
+		createLevel(levelNum);
+		player = new Player(this, level, player.xPos1, player.yPos1, controller, "Link");
+		level.addEntity(player);
+	}
+	/////////////////////////////////////////
 	
 	// Load Images Method //
 	public void loadImages() {
@@ -247,7 +275,43 @@ public class Game extends Canvas implements Runnable {
 		    messageBox = ImageIO.read(Game.class.getResourceAsStream("/MessageBox1.png"));
 		} catch (IOException e) {
 			System.out.println(e);
-		}  try {
+		} try {
+		    startBox_middle = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(middle).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+		    startBox_bottom = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(bottom).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+		    startBox_top = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(top).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+		    startBox_right = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(right).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+		    startBox_left = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(left).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+		    startBox_bottomleft = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(bottomleft).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+		    startBox_topleft = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(topleft).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+		    startBox_bottomright = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(bottomright).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+		    startBox_topright = ImageIO.read(Game.class.getResourceAsStream("/MessageBox2(topright).png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
 		    startbar = ImageIO.read(Game.class.getResourceAsStream("/start.png"));
 		} catch (IOException e) {
 			System.out.println(e);
@@ -256,18 +320,17 @@ public class Game extends Canvas implements Runnable {
 		} catch (IOException e) {
 			System.out.println(e);
 		} try {
+			continueArrow = ImageIO.read(Game.class.getResourceAsStream("/contarrow.png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
 			fontsheet = ImageIO.read(Game.class.getResourceAsStream("/MacChicago.png"));
 		} catch (IOException e) {
 			System.out.println(e);
-		}
-		
-			// Loading all tiles from spritesheet to array
-		BufferedImage spritesheet = screen.sheet.image;
-		
-		for (int y = 0; y < spritesheet.getHeight() / 16; y++) {
-			for (int x = 0; x < spritesheet.getWidth() / 16; x++) {
-				tileset.add(spritesheet.getSubimage(x * 16, y * 16, 16, 16));
-			}
+		} try {
+			animationSheet = ImageIO.read(Game.class.getResourceAsStream("/animationsheet.png"));
+		} catch (IOException e) {
+			System.out.println(e);
 		}
 		
 			// Loading fontsheet, String sizes indicates pixel widths of characters as they appear on the fontsheet
@@ -286,21 +349,7 @@ public class Game extends Canvas implements Runnable {
 			}
 		}
 	}
-	
-	// Initialize when Loading Game Method //
-	public void init_load() {
-			// Almost same as init() method, but used for loading saved game files, not starting new game files
-		screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/Sprite_Sheet.png"));
-		createLevel(levelNum);
-		controller = new Controller(this);
-		player = new Player(this, level, player.xPos1, player.yPos1, controller, "Link");
-		level.addEntity(player);
-		loadImages();
-		fonts = new Fonts();
-		pauseMenu = new MenuBar(new String[] {"Controls", "Stats", "Save", "Save and Quit", "Continue"}, font);
-		startMenu = new MenuBar(new String[] {"Load Game", "New Game"}, font);
-	}
-	//////////////////////
+	////////////////////////
 	
 	// Add WarpPoint Method //
 	public void addWarpPoint(WarpPoint warpPoint) {
@@ -348,9 +397,26 @@ public class Game extends Canvas implements Runnable {
 	
 	// Animate Tiles Method //
 	public void animateTiles() {
-			// *TO BE COMPLETED*
+			
 	}
 	//////////////////////////
+	
+	public void setAnimationTiles() {
+		
+	}
+	
+	// Load SpriteSheet Method //
+	public void loadSpriteSheet() {
+			// Loading all tiles from spritesheet to array
+		BufferedImage spritesheet = screen.sheet.image;
+		tileset.clear();
+		for (int y = 0; y < spritesheet.getHeight() / 16; y++) {
+			for (int x = 0; x < spritesheet.getWidth() / 16; x++) {
+				tileset.add(spritesheet.getSubimage(x * 16, y * 16, 16, 16));
+			}
+		}
+	}
+	/////////////////////////////
 	
 	// Create Levels Method //
 	public void createLevel(int levelNum) {
@@ -375,22 +441,21 @@ public class Game extends Canvas implements Runnable {
 			// Warp Points
 				WarpPoint warp1 = new WarpPoint(this, 1, 16, 42, 2, 15, 15, "down");
 				addWarpPoint(warp1);
-				
 			break;
 					
 		case 2: name = "Ordon_Village_Main";
-				System.out.println(name);
 				setupMap(name);
 			// Message Boxes
 				MessageBox sign2 = new MessageBox(12, 7, "Hello World!");
 				level.addMessageBox(sign2);
 				
 			// NPCs
-				NPC genericNPC2 = new NPC(this, level, 16, 9, "Don't take the blue acid!", "Link");
+				NPC genericNPC2 = new NPC(this, level, 26, 18, "Don't take the blue acid!", "Link");
 				NPCs.add(genericNPC2);
 				level.addEntity(genericNPC2);
 			break;
 		}
+		loadSpriteSheet();
 	}
 	//////////////////////////
 	
@@ -433,29 +498,89 @@ public class Game extends Canvas implements Runnable {
 	}
 	/////////////////
 	
-	// Render and Tick Function of Pause Menu //
+	// Render Function of Pause Menu //
 	public void renderPauseMenu(Graphics g) {
-		if (controller.start.is_hit & menuOpen) {
-			controller.start.is_hit = false;
-			menuOpen = false;
-			player.canMove = true;
-		}
+		tickPauseMenu();
 		if (controller.start.is_hit || menuOpen) {
 			controller.start.is_hit = false;
 			menuOpen = true;
 			renderMenuBox(pauseMenu, g);
+			player.canMove = false;
 		}
 	}
-	////////////////////////////////////////////
+	///////////////////////////////////
+	
+	// Tick Pause Menu //
+	public void tickPauseMenu() {
+		if (controller.start.is_hit & menuOpen) {
+			controller.start.is_hit = false;
+			menuOpen = false;
+			player.canMove = true;
+			fonts.resetBoxIndex();
+		}
+		if (controller.a_button.is_hit & menuOpen) {
+			controller.a_button.is_hit = false;
+			switch  (pauseMenu.getSelected()) {
+				case 0:
+					break;
+				case 1:
+					break;
+				case 2: saveGame();
+						System.out.println("Saved.");
+					break;
+				case 3: saveGame();
+						System.out.println("Saved.");
+						stop();
+						this.frame.removeAll();
+					break;
+				case 4: menuOpen = false;
+						player.canMove = true;
+					break;
+					
+			}	
+			fonts.resetBoxIndex();
+		}
+	}
+	/////////////////////
+	
+	// Tick Start Menu //
+	public void tickStartMenu() {
+		if (controller.a_button.is_hit & atStartMenu) {
+			controller.a_button.is_hit = false;
+			switch  (startMenu.getSelected()) {
+				case 0: initLoad();
+					break;
+				case 1: init();
+					break;
+			}
+			playing = true;
+			atTitle = false;
+			timer.start();
+			fonts.resetBoxIndex();
+		}
+	}
+	/////////////////////
+	
+	// Render Menu Box Parts Method //
+	public void renderBox(int width, int height, Graphics g) {
+		g.drawImage(startBox_middle, (WIDTH * SCALE - width) / 2 - 10, (HEIGHT * SCALE - height) / 2 - 8, width + 20, height + 20, null);
+		g.drawImage(startBox_top, (WIDTH * SCALE - width) / 2 - 10, (HEIGHT * SCALE - height) / 2 - 8, width + 20, 8, null);
+		g.drawImage(startBox_bottom, (WIDTH * SCALE - width) / 2 - 10, (HEIGHT * SCALE - height) / 2 + height + 4, width + 20, 8, null);
+		g.drawImage(startBox_left, (WIDTH * SCALE - width) / 2 - 10, (HEIGHT * SCALE - height) / 2 - 8, 8, height + 20, null);
+		g.drawImage(startBox_right, (WIDTH * SCALE - width) / 2 + width + 8, (HEIGHT * SCALE - height) / 2 - 8, 8, height + 20, null);
+		g.drawImage(startBox_topleft, (WIDTH * SCALE - width) / 2 - 10, (HEIGHT * SCALE - height) / 2 - 8, 8, 8, null);
+		g.drawImage(startBox_bottomleft, (WIDTH * SCALE - width) / 2 - 10, (HEIGHT * SCALE - height) / 2 + height + 4, 8, 8, null);
+		g.drawImage(startBox_topright, (WIDTH * SCALE - width) / 2 + width + 8, (HEIGHT * SCALE - height) / 2 - 8, 8, 8, null);
+		g.drawImage(startBox_bottomright, (WIDTH * SCALE - width) / 2 + width + 8, (HEIGHT * SCALE - height) / 2 + height + 4, 8, 8, null);
+	}
+	//////////////////////////////////
 	
 	// Render Menu Box Method //
 	public void renderMenuBox(MenuBar menu, Graphics g) {
-		g.drawImage(messageBox, (WIDTH - (menu.width / 3)) / 2 * 3, (HEIGHT - menu.height) / 2 * 3 , menu.width, menu.height * 3, null);
+		renderBox(menu.width, menu.height, g);
 		for (int i = 0; i < menu.getOptions().length; i++)
-			fonts.render(menu.getOptions()[i], screen, (WIDTH - menu.width / 3) / 2 + 39, (HEIGHT - menu.height) / 2 + (16 * i) + 5, WIDTH, 1, g, font);
-		menuOpen = true;
-		player.canMove = false;
-		g.drawImage(selector, (WIDTH - menu.width / 3) / 2 * 3 - 16, (HEIGHT - menu.height) / 2 * 3 + (48 * menu.getSelected()) + 18, 16, 16, null);
+			fonts.render(menu.getOptions()[i], screen, (WIDTH * SCALE - menu.width) / 2, (HEIGHT * SCALE - menu.height) / 2 + (48 * i), WIDTH, 1, g, font);
+		g.drawImage(selector, (WIDTH * SCALE - menu.width) / 2 - 18, (HEIGHT * SCALE - menu.height) / 2 + 4 + (48 * menu.getSelected()), 16, 16, null);
 		if (controller.up.is_hit) {
 			controller.up.is_hit = false;
 			menu.selectUp();
@@ -498,7 +623,7 @@ public class Game extends Canvas implements Runnable {
 					toLeft = true;
 				if ((above || below || toRight || toLeft) & (controller.a_button.is_hit || messageBoxOpen)) {
 						g.drawImage(messageBox, 0, 384, getWidth(), getHeight() - 384, null);
-						fonts.render(m.getMessage(), screen, 16, 132, WIDTH, 4, g, font);
+						fonts.render(m.getMessage(), screen, 16, 132 * SCALE, WIDTH, 4, g, font);
 						messageBoxOpen = true;
 						controller.a_button.is_hit = false;
 						player.canMove = false;
@@ -516,7 +641,7 @@ public class Game extends Canvas implements Runnable {
 								toLeft = true;
 							if ((above || below || toRight || toLeft) & (controller.a_button.is_hit || messageBoxOpen)) {
 									g.drawImage(messageBox, 0, 384, getWidth(), getHeight() - 384, null);
-									fonts.render(npc.getMessage(), screen, 16, 132, WIDTH, 4, g, font);
+									fonts.render(npc.getMessage(), screen, 16, 132 * SCALE, WIDTH, 4, g, font);
 									messageBoxOpen = true;
 									controller.a_button.is_hit = false;
 									player.canMove = false;
@@ -537,10 +662,22 @@ public class Game extends Canvas implements Runnable {
 								freeNPC = false;
 							}
 						}
-					controller.a_button.is_hit = false;
 					}
 				}
 			}
+		}
+		if (!fonts.messageComplete() & messageBoxOpen) {
+			int y_shift = 0;
+			switch ((quarterseconds / 2) % 4) {
+				case 0: y_shift = 0;
+					break;
+				case 1: y_shift = -3;
+					break;
+				case 2: y_shift = 0;
+					break;
+				case 3: y_shift = 3;
+			}
+			g.drawImage(continueArrow, WIDTH * SCALE - 30, HEIGHT * SCALE - 24 + y_shift, 16, 16, null);
 		}
 	}
 	///////////////////////////////
@@ -571,7 +708,7 @@ public class Game extends Canvas implements Runnable {
 			}
 		} while (!sorted);
 	}
-	///////////////////
+	////////////////////////
 	
 	// Render Characters //
 	public void renderCharacters(Graphics g) {
@@ -582,6 +719,7 @@ public class Game extends Canvas implements Runnable {
 			}
 		}		
 	}
+	///////////////////////
 	
 	// Render Layer Method //
 	public void renderLayer(Screen screen, int xOffset, int yOffset, Map layer, Graphics g) {
@@ -604,15 +742,18 @@ public class Game extends Canvas implements Runnable {
 					// Checks that map tile is readable
 				if (Map.getTile(x, y, layer) >= 0) {
 					if (x > (player.xPos / 16) - (screen.width / 32) - 1 && y > (player.yPos / 16) - (screen.height / 32) - 2 && x < (player.xPos / 16) + (screen.width / 32) + 2 && y < (player.yPos / 16) + (screen.height / 32) + 2) {
-						g.drawImage(tileset.get(Map.getTile(x, y, layer) - 1), (x * 16 - xOffset)  * SCALE, (y * 16 - yOffset) * SCALE, 16 * SCALE, 16 * SCALE, null);
+						if (AnimatedTile.isAnimated(animationSet, Map.getTile(x, y, layer)))
+							g.drawImage(tileset.get(Map.getTile(x, y, layer) - 1), (x * 16 - xOffset)  * SCALE, (y * 16 - yOffset) * SCALE, 16 * SCALE, 16 * SCALE, null);
+						else
+							g.drawImage(animationSet.get(arg0).get())
 					}
 				}
 			}
 		}
 	}
-	/////////////////////////////
+	/////////////////////////
 	
-	// Render Method //
+	// Main Render Method //
 	public void render() {
 			// Set up buffer strategy, uses three image buffers
 		BufferStrategy bs = getBufferStrategy();
@@ -624,11 +765,10 @@ public class Game extends Canvas implements Runnable {
 			// Sets up graphics based on buffer strategy
 		Graphics g = bs.getDrawGraphics();
 		
-			// Sets up the offset for where the screen starts relative to the player in the context of the map
-		int xOffset = player.xPos + 8 - (screen.width / 2);
-		int yOffset = player.yPos + 8 - (screen.height / 2);
-		
-		if (playing) {
+		if (playing & !atTitle) {		
+				// Sets up the offset for where the screen starts relative to the player in the context of the map
+			int xOffset = player.xPos + 8 - (screen.width / 2);
+			int yOffset = player.yPos + 8 - (screen.height / 2);
 				// Renders Layer 1, then the player, then Layer 2, then messages if there any
 			renderLayer(screen, xOffset, yOffset, layer1, g);
 			renderCharacters(g);
@@ -645,6 +785,8 @@ public class Game extends Canvas implements Runnable {
 				// Start bar will flash
 			if (start_is_visible)
 				g.drawImage(startbar, 15, 300, getWidth(), 12, null);
+			if (atStartMenu)
+				renderMenuBox(startMenu, g);
 		}
 		
 		if (!atTitle)
@@ -656,7 +798,7 @@ public class Game extends Canvas implements Runnable {
 		Toolkit.getDefaultToolkit().sync();
 		
 	}
-	///////////////////
+	////////////////////////
 
 	// Save Method //
 	public void saveGame() {
@@ -675,6 +817,8 @@ public class Game extends Canvas implements Runnable {
 			bufferedWriter.write("" + player.xPos);
 			bufferedWriter.newLine();
 			bufferedWriter.write("" + player.yPos);
+			bufferedWriter.newLine();
+			bufferedWriter.write(timer.getTime());
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -703,6 +847,7 @@ public class Game extends Canvas implements Runnable {
 			this.levelNum = Integer.parseInt(br.readLine());
 			player.xPos1 = Integer.parseInt(br.readLine());
 			player.yPos1 = Integer.parseInt(br.readLine());
+			timer = Timer.parseTimer(br.readLine());
 			br.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

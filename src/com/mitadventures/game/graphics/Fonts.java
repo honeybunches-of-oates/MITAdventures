@@ -8,8 +8,8 @@ public class Fonts {
 
 	public static String chars = "!\"$&,-.0123456789:;=?' " + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 			+ "abcdefghijklmnopqrstuvwxyz";
-	private int index = 0;
-	private int boxIndex = 1;
+	public int index = 0;
+	public int boxIndex = 1;
 	private boolean messageComplete = false;
 
 	public void render(String msg, Screen screen, int x, int y, int maxWidth, int maxHeight, Graphics g, List<BufferedImage> font) {
@@ -29,7 +29,7 @@ public class Fonts {
 						if (character == chars.charAt(ind)) {
 							int width = font.get(ind).getWidth();
 							int height = 16;
-	 						g.drawImage(font.get(ind), (xPosIndex + x) * 2, (y + (i % 4) * 10) * 3, width * 2, height * 2, null);
+	 						g.drawImage(font.get(ind), x + xPosIndex * 2, y + ((i % 4) * 30), width * 2, height * 2, null);
 	 						xPosIndex += width;
 	 						if (index >= messageLength - 1) {
 	 							messageComplete = true;

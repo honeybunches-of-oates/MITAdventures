@@ -1,27 +1,33 @@
 package com.mitadventures.game.level.tiles;
 
+import java.awt.Image;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class AnimatedTile {
 
-	private List<Integer> tiles = new ArrayList<Integer>();
-	private int index = 0;
+	private List<Image> tiles = new ArrayList<Image>();
+	private int index;
+	private int tileid;
+	private int numstages;
+	private int stage;
+		// given in quarterseconds
+	private int stageduration;
 	
-	public AnimatedTile(int initialTileId, int timeCycle) {
-		tiles.add(initialTileId);
+	public AnimatedTile() {
+		stage = 0;
 	}
 	
-	public void addTile(int tileId) {
-		tiles.add(tileId);
+	public void stageCheck(int quarterseconds) {
+		if (quarterseconds % stageduration == 0) {
+			stage++;
+			if (stage >= numstages)
+				stage = 0;
+		}
 	}
 	
-	public int nextTile() {
-		int tile = tiles.get(index);
-		index++;
-		if (index == tiles.size())
-			index = 0;
-		return tile;
+	public static boolean isAnimated(List<AnimatedTile> animationsheet, int index) {
+		return false;
 	}
 }

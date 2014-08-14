@@ -65,14 +65,13 @@ public abstract class Entity {
 	public int getOriginalY() {
 		return yPos1;
 	}
-	// ////////////////////////////////////
+	///////////////////////////////////////
 
 	// Set Current X Coordinate Method //
 	public void setCurrentX(int xPos) {
 		this.xPos = xPos;
 	}
-
-	// ///////////////////////////////////
+	//////////////////////////////////////
 
 	// Set Current Y Coordinate Method //
 	public void setCurrentY(int yPos) {
@@ -118,7 +117,7 @@ public abstract class Entity {
 
 	// Set Current Y Tile Method //
 	public void setCurrentYTile(int yTilePos) {
-		this.yPos = yTilePos * 16 - 8;
+		this.yPos = yTilePos * 16;
 	}
 
 	// /////////////////////////////
