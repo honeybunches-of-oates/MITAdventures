@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.awt.image.PixelGrabber;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -752,6 +753,44 @@ public class Game extends Canvas implements Runnable {
 		}
 	}
 	/////////////////////////
+	
+	public void setAnimatedTiles(String name) {
+		int animationpixels[] = new int[16 * 16];
+		int spritesheetpixels[] = new int[16 * 16];
+		try {
+		    BufferedImage spritesheet = ImageIO.read(Game.class.getResourceAsStream("/Spritesheet(" + name + ").png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+		for (int setnum = 0; setnum < animationSheet.getHeight(null) / 16; setnum++) {
+		BufferedImage animationTile = ((BufferedImage) animationSheet).getSubimage(0, setnum * 16, 16, 16);
+		PixelGrabber animpixelgrabber = new PixelGrabber(animationTile, 0, 0, 16, 16, animationpixels, 0, 16);
+		try {
+			animpixelgrabber.grabPixels();
+		} catch (InterruptedException e) {
+			System.out.println(e);
+		}
+
+		for (int y = 0; y < spritesheet.getHeight() / 16; y++) {
+			for (int x = 0; x < spritesheet.getWidth() / 16; x++) {
+				BufferedImage spritesheetTile = spritesheet.getSubimage(x * 16, y * 16, 16, 16);
+				PixelGrabber spritesheetpixelgrabber = new PixelGrabber(
+						spritesheetTile, 0, 0, 16, 16, spritesheetpixels, 0, 16);
+				try {
+					spritesheetpixelgrabber.grabPixels();
+				} catch (InterruptedException e) {
+					System.out.println(e);
+				}
+				boolean match = false;
+				for (int i = 0; i < spritesheetpixels.length; i++) {
+					if (spritesheetpixels[i] != animationpixels[i])
+						break;
+					if (i == spritesheetpixels.length - 1)
+						match = true;
+				}
+			}
+		}
+	}
 	
 	// Main Render Method //
 	public void render() {

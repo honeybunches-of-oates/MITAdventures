@@ -30,4 +30,8 @@ public class AnimatedTile {
 	public static boolean isAnimated(List<AnimatedTile> animationsheet, int index) {
 		return false;
 	}
+	
+	public Image getImage() {
+		return tiles.get(stage);
+	}
 }
