@@ -5,11 +5,11 @@
 
 package com.mitadventures.game.characters;
 
-import com.mitadventures.game.Game;
-import com.mitadventures.game.graphics.Screen;
-import com.mitadventures.game.level.tiles.Tile;
 import com.mitadventures.game.Controller;
+import com.mitadventures.game.Game;
+import com.mitadventures.game.graphics.SpriteSet;
 import com.mitadventures.game.level.Level;
+import com.mitadventures.game.level.tiles.Tile;
 
 public class Player extends Actor {
 
@@ -20,7 +20,71 @@ public class Player extends Actor {
 	public long lastprocessed;
 	public Game game;
 	private int stride = 0;
-
+	public int health;
+	public int yButtonItem = 0;
+	public int xButtonItem = 0;
+	public boolean yButtonItemInUse = false;
+	public boolean xButtonItemInUse = false;
+	public boolean isSwimming = false;
+	public boolean isClimbing = false;
+	public boolean isJumping = false;
+	public boolean wolfState = false;
+	public boolean midnaState = false;
+	public boolean isFighting = false;
+	public boolean isWhistling = false;
+	public boolean isAttacking = false;
+	public SpriteSet swimming;
+	public SpriteSet climbing;
+	public SpriteSet fighting;
+	public SpriteSet jumping;
+	public SpriteSet jumpingSwordAttack;
+	public SpriteSet somersault;
+	public SpriteSet finishAttack;
+	public SpriteSet swordAttack;
+	public SpriteSet shieldDefense;
+	public SpriteSet holdingitem;
+	public SpriteSet death;
+	public SpriteSet deathByLava;
+	public SpriteSet deathByPit;
+	public SpriteSet injury;
+	public SpriteSet wolfDeathWithoutMidna;
+	public SpriteSet wolfDeathWithMidna;
+	public SpriteSet wolfDeathByLavaWithoutMidna;
+	public SpriteSet wolfDeathByLavaWithMidna;
+	public SpriteSet wolfInjuryWithoutMidna;
+	public SpriteSet wolfInjuryWithMidna;
+	public SpriteSet wolfLongJumpWithMidna;
+	public SpriteSet wolfWithoutMidna;
+	public SpriteSet wolfWithMidna;
+	public SpriteSet wolfAttackWithoutMidna;
+	public SpriteSet wolfAttackWithMidna;
+	public SpriteSet wolfJumpAttackWithoutMidna;
+	public SpriteSet wolfJumpAttackWithMidna;
+	public SpriteSet wolfSpinAttack;
+	public SpriteSet wolfCircle;
+	public SpriteSet wolfHowlWithoutMidna;
+	public SpriteSet wolfHowlWithMidna;
+	public SpriteSet wolfDigWithoutMidna;
+	public SpriteSet wolfDigWithMidna;
+	public SpriteSet wolfSwimmingWithMidna;
+	public SpriteSet wolfSwimmingWithoutMidna;
+	public SpriteSet firingBow;
+	public SpriteSet firingSlingShot;
+	public SpriteSet whistling;
+	public SpriteSet throwingBoomerang;
+	public SpriteSet spinner;
+	public SpriteSet spinnerAttack;
+	public SpriteSet clawshot;
+	public SpriteSet doubleclawshot;
+	public SpriteSet ironBoots;
+	public SpriteSet flippingWithIronBoots;
+	public SpriteSet sidewaysWithIronBoots;
+	public SpriteSet upsideDownWithIronBoots;
+	public SpriteSet fishing;
+	public SpriteSet ballAndChain;
+	public SpriteSet swingingBallAndChain;
+	public SpriteSet flyingBird;
+	public SpriteSet twilightBird;
 	////////////////////////////////
 
 	// Player Constructor //
@@ -29,8 +93,11 @@ public class Player extends Actor {
 		this.controller = controller;
 		this.game = game;
 	}
-
 	////////////////////////
+	
+	public int getStage() {
+		
+	}
 
 	// Setting Sprite Method //
 	public void setSprite(int num) {

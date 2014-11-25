@@ -69,7 +69,7 @@ public class Game extends Canvas implements Runnable {
 	private Image startBox_topright;
 	private Image selector;
 	private Image continueArrow;
-	private Image animationSheet;
+	private BufferedImage animationSheet;
 	private Image solidTileSheet;
 	
 		// Game States
@@ -84,6 +84,7 @@ public class Game extends Canvas implements Runnable {
 	public Controller controller;
 	private Fonts fonts;
 	private int quarterseconds;
+	private int tilestage;
 	
 		// Level Objects
 	public Level level;
@@ -189,7 +190,12 @@ public class Game extends Canvas implements Runnable {
 			if (System.currentTimeMillis() - lastTimer2 >= 250) {
 				lastTimer2 += 250;
 				quarterseconds++;
-				if (quarterseconds > 60)
+				if(quarterseconds % 2 == 0) {
+					tilestage++;
+				}
+					if(tilestage > 2)
+						tilestage = 0;
+				if (quarterseconds > 63)
 					quarterseconds = 0;
 			}
 			
@@ -349,6 +355,7 @@ public class Game extends Canvas implements Runnable {
 				index += size;
 			}
 		}
+		loadAnimationTiles();
 	}
 	////////////////////////
 	
@@ -402,14 +409,21 @@ public class Game extends Canvas implements Runnable {
 	}
 	//////////////////////////
 	
-	public void setAnimationTiles() {
-		
+	// Set Animation Set Tiles //
+	public void loadAnimationTiles() {
+		for (int y = 0; y < animationSheet.getHeight() / 16; y++) {
+			List<BufferedImage> list = new ArrayList<BufferedImage>();
+			for (int x = 0; x < animationSheet.getWidth() / 16; x++) {
+				list.add(animationSheet.getSubimage(16 * x, 16 * y, 16, 16));
+			}
+			animationSet.add(new AnimatedTile(list, animationSheet.getWidth() / 16));
+		}
 	}
+	/////////////////////////////
 	
 	// Load SpriteSheet Method //
-	public void loadSpriteSheet() {
+	public void loadSpriteSheet(BufferedImage spritesheet) {
 			// Loading all tiles from spritesheet to array
-		BufferedImage spritesheet = screen.sheet.image;
 		tileset.clear();
 		for (int y = 0; y < spritesheet.getHeight() / 16; y++) {
 			for (int x = 0; x < spritesheet.getWidth() / 16; x++) {
@@ -422,7 +436,7 @@ public class Game extends Canvas implements Runnable {
 	// Create Levels Method //
 	public void createLevel(int levelNum) {
 		NPCs.clear();
-		String name;
+		String name = "";
 			// Decides which level player is currently in
 		switch (levelNum) {
 			/* Each case creates two layers, a base layer and a top layer (rendered over the player), 
@@ -456,7 +470,8 @@ public class Game extends Canvas implements Runnable {
 				level.addEntity(genericNPC2);
 			break;
 		}
-		loadSpriteSheet();
+		//loadSpriteSheet();
+		setAnimatedTiles(name);
 	}
 	//////////////////////////
 	
@@ -716,7 +731,7 @@ public class Game extends Canvas implements Runnable {
 		overlapCheckSort();
 		for (Entity e : level.entities) {
 			if (onScreen(e)) {
-				g.drawImage(e.spriteSet.sprites[e.direction - 1][e.spriteStage], (6 * 16 + (e.xPos - player.xPos)) * SCALE + 3, (4 * 16 + (e.yPos - player.yPos)) * SCALE + 12, 14 * SCALE, 28 * SCALE, null);
+				g.drawImage(e.spriteSets.get(e.getStage()).sprites[e.direction - 1][e.spriteStage], (6 * 16 + (e.xPos - player.xPos)) * SCALE + 3, (4 * 16 + (e.yPos - player.yPos)) * SCALE + 12, 14 * SCALE, 28 * SCALE, null);
 			}
 		}		
 	}
@@ -743,10 +758,11 @@ public class Game extends Canvas implements Runnable {
 					// Checks that map tile is readable
 				if (Map.getTile(x, y, layer) >= 0) {
 					if (x > (player.xPos / 16) - (screen.width / 32) - 1 && y > (player.yPos / 16) - (screen.height / 32) - 2 && x < (player.xPos / 16) + (screen.width / 32) + 2 && y < (player.yPos / 16) + (screen.height / 32) + 2) {
-						if (AnimatedTile.isAnimated(animationSet, Map.getTile(x, y, layer)))
+						if (!AnimatedTile.isAnimated(animationSet, Map.getTile(x, y, layer)))
 							g.drawImage(tileset.get(Map.getTile(x, y, layer) - 1), (x * 16 - xOffset)  * SCALE, (y * 16 - yOffset) * SCALE, 16 * SCALE, 16 * SCALE, null);
-						else
-							g.drawImage(animationSet.get(arg0).get())
+						else {
+							g.drawImage(animationSet.get(AnimatedTile.getIndex(animationSet, Map.getTile(x, y, layer))).getImage(tilestage), (x * 16 - xOffset)  * SCALE, (y * 16 - yOffset) * SCALE, 16 * SCALE, 16 * SCALE, null);
+						}
 					}
 				}
 			}
@@ -754,43 +770,62 @@ public class Game extends Canvas implements Runnable {
 	}
 	/////////////////////////
 	
+	
+	// Set Animated Tile Sheet Method //
 	public void setAnimatedTiles(String name) {
 		int animationpixels[] = new int[16 * 16];
 		int spritesheetpixels[] = new int[16 * 16];
+		BufferedImage spritesheet = null;
 		try {
-		    BufferedImage spritesheet = ImageIO.read(Game.class.getResourceAsStream("/Spritesheet(" + name + ").png"));
+		    spritesheet = ImageIO.read(Game.class.getResourceAsStream("/Spritesheet(" + name + ").png"));
 		} catch (IOException e) {
 			System.out.println(e);
 		}
-		for (int setnum = 0; setnum < animationSheet.getHeight(null) / 16; setnum++) {
-		BufferedImage animationTile = ((BufferedImage) animationSheet).getSubimage(0, setnum * 16, 16, 16);
-		PixelGrabber animpixelgrabber = new PixelGrabber(animationTile, 0, 0, 16, 16, animationpixels, 0, 16);
-		try {
-			animpixelgrabber.grabPixels();
-		} catch (InterruptedException e) {
-			System.out.println(e);
-		}
-
-		for (int y = 0; y < spritesheet.getHeight() / 16; y++) {
-			for (int x = 0; x < spritesheet.getWidth() / 16; x++) {
-				BufferedImage spritesheetTile = spritesheet.getSubimage(x * 16, y * 16, 16, 16);
-				PixelGrabber spritesheetpixelgrabber = new PixelGrabber(
-						spritesheetTile, 0, 0, 16, 16, spritesheetpixels, 0, 16);
-				try {
-					spritesheetpixelgrabber.grabPixels();
-				} catch (InterruptedException e) {
-					System.out.println(e);
-				}
-				boolean match = false;
-				for (int i = 0; i < spritesheetpixels.length; i++) {
-					if (spritesheetpixels[i] != animationpixels[i])
+		loadSpriteSheet(spritesheet);
+		for (int setnum = 0; setnum < animationSheet.getHeight() / 16; setnum++) {
+			BufferedImage animationTile = ((BufferedImage) animationSheet).getSubimage(0, setnum * 16, 16, 16);
+			PixelGrabber animpixelgrabber = new PixelGrabber(animationTile, 0, 0, 16, 16, animationpixels, 0, 16);
+			try {
+				animpixelgrabber.grabPixels();
+			} catch (InterruptedException e) {
+				System.out.println(e);
+			}
+			boolean finished = false;
+			for (int y = 0; y < spritesheet.getHeight() / 16; y++) {
+				if (finished)
+					break;
+				for (int x = 0; x < spritesheet.getWidth() / 16; x++) {
+					BufferedImage spritesheetTile = spritesheet.getSubimage(x * 16, y * 16, 16, 16);
+					PixelGrabber spritesheetpixelgrabber = new PixelGrabber(spritesheetTile, 0, 0, 16, 16, spritesheetpixels, 0, 16);
+					try {
+						spritesheetpixelgrabber.grabPixels();
+					} catch (InterruptedException e) {
+						System.out.println(e);
+					}
+					boolean match = false;
+					for (int i = 0; i < spritesheetpixels.length; i++) {
+						if (spritesheetpixels[i] != animationpixels[i])
+							break;
+						if (i == spritesheetpixels.length - 1)
+							match = true;
+					}
+					if (match) {
+						System.out.println("match " + (y * spritesheet.getWidth() / 16 + x + 1) + " " + setnum);
+						animationSet.get(setnum).setTileId(y * spritesheet.getWidth() / 16 + x + 1);
+						finished = true;
 						break;
-					if (i == spritesheetpixels.length - 1)
-						match = true;
+					} else {
+						animationSet.get(setnum).setTileId(-2);
+					}
 				}
 			}
 		}
+		for (AnimatedTile anim : animationSet) {
+			System.out.print(anim.getTileId());
+		}
+		System.out.println();
 	}
+	////////////////////////////////////
 	
 	// Main Render Method //
 	public void render() {

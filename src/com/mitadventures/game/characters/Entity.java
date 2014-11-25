@@ -1,5 +1,7 @@
 package com.mitadventures.game.characters;
 
+import java.util.List;
+
 import com.mitadventures.game.graphics.SpriteSet;
 import com.mitadventures.game.level.Level;
 
@@ -20,7 +22,7 @@ public abstract class Entity {
 	public int direction = 3;
 	protected Level level;
 	private String message = "no message";
-	public SpriteSet spriteSet;
+	public List<SpriteSet> spriteSets;
 
 	public Entity(Level level, int x, int  y) {
 		init(level);
@@ -77,64 +79,57 @@ public abstract class Entity {
 	public void setCurrentY(int yPos) {
 		this.yPos = yPos;
 	}
-
 	// ///////////////////////////////////
 
 	// Get Current X Coordinate Method //
 	public int getCurrentX() {
 		return xPos;
 	}
-
 	// ///////////////////////////////////
 
 	// Get Current Y Coordinate Method //
 	public int getCurrentY() {
 		return yPos;
 	}
-
 	// ///////////////////////////////////
 
 	// Get Original X Tile Method //
 	public int getOriginalXTile() {
 		return xPos1 * 16;
 	}
-
 	// //////////////////////////////
 
 	// Get Original Y Tile Method //
 	public int getOriginalYTile() {
 		return yPos1 * 16;
 	}
-
 	// //////////////////////////////
 
 	// Set Current X Tile Method //
 	public void setCurrentXTile(int xTilePos) {
 		this.xPos = xTilePos << 4;
 	}
-
 	// /////////////////////////////
 
 	// Set Current Y Tile Method //
 	public void setCurrentYTile(int yTilePos) {
 		this.yPos = yTilePos * 16;
 	}
-
 	// /////////////////////////////
 
 	// Get Current X Tile Method //
 	public int getCurrentXTile() {
 		return xPos >> 4;
 	}
-
 	// /////////////////////////////
 
 	// Get Current Y Tile Method //
 	public int getCurrentYTile() {
 		return (yPos + 8) >> 4;
 	}
-
 	// /////////////////////////////
 	
 	public abstract void tick();
+	
+	public abstract int getStage();
 }

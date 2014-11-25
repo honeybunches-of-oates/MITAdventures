@@ -1,6 +1,5 @@
 package com.mitadventures.game.graphics;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -10,7 +9,7 @@ public class PlayerSpriteSet extends SpriteSet{
 	public PlayerSpriteSet(String name) {
 		super(name, 4, 3);
 	}
-
+	
 	public void loadSpriteSet() {
 		try {
 			sprites[0][0] = ImageIO.read(PlayerSpriteSet.class.getResourceAsStream("/Sprites/" + name + "_Up.png"));

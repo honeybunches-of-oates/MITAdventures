@@ -4,7 +4,10 @@
 
 package com.mitadventures.game.characters;
 
+import java.util.ArrayList;
+
 import com.mitadventures.game.graphics.PlayerSpriteSet;
+import com.mitadventures.game.graphics.SpriteSet;
 import com.mitadventures.game.level.Level;
 
 public abstract class Actor extends Entity {
@@ -20,9 +23,14 @@ public abstract class Actor extends Entity {
     	this.yPos = y;
     	this.xPos1 = x;
     	this.yPos1 = y;
-    	spriteSet = new PlayerSpriteSet(type);
+    	spriteSets = new ArrayList<SpriteSet>();
+    	spriteSets.add(new PlayerSpriteSet(type));
     }
     ///////////////////////
+    
+    public int getStage() {
+    	return 0;
+    }
     
     // Get Coordinate Methods //
     public int getX() {

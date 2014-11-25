@@ -234,8 +234,7 @@ public class ImageToMap {
 			for (int y = 0; y < map2.getHeight() / 16; y++) {
 				for (int x = 0; x < map2.getWidth() / 16; x++) {
 					int mapTilePixels[] = new int[16 * 16];
-					BufferedImage mapTile = map2
-							.getSubimage(x * 16, y * 16, 16, 16);
+					BufferedImage mapTile = map2.getSubimage(x * 16, y * 16, 16, 16);
 					PixelGrabber mappixelgrabber = new PixelGrabber(mapTile, 0, 0,
 							16, 16, mapTilePixels, 0, 16);
 					try {

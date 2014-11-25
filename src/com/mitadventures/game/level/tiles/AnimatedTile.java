@@ -1,37 +1,53 @@
 package com.mitadventures.game.level.tiles;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class AnimatedTile {
 
-	private List<Image> tiles = new ArrayList<Image>();
-	private int index;
+	private List<BufferedImage> tiles = new ArrayList<BufferedImage>();
 	private int tileid;
 	private int numstages;
-	private int stage;
+	public int stage;
 		// given in quarterseconds
-	private int stageduration;
+	private int stageduration = 2;
 	
-	public AnimatedTile() {
+	public AnimatedTile(List<BufferedImage> tiles, int numStages) {
 		stage = 0;
+		this.tiles = tiles;
+		this.numstages = numStages;
 	}
 	
-	public void stageCheck(int quarterseconds) {
-		if (quarterseconds % stageduration == 0) {
-			stage++;
-			if (stage >= numstages)
-				stage = 0;
-		}
+	public void setTileId(int id) {
+		tileid = id;
+	}
+	
+	public int getTileId() {
+		return tileid;
 	}
 	
 	public static boolean isAnimated(List<AnimatedTile> animationsheet, int index) {
+		for (int i = 0; i < animationsheet.size(); i++) {
+			if (animationsheet.get(i).getTileId() == index)
+				return true;
+		}
 		return false;
 	}
 	
-	public Image getImage() {
-		return tiles.get(stage);
+	public static int getIndex(List<AnimatedTile> animationsheet, int initindex) {
+		for (int i = 0; i < animationsheet.size(); i++) {
+			if (animationsheet.get(i).getTileId() == initindex) {
+				return i;
+			}
+		}
+		System.out.println(-1);
+		return -1;
+	}
+	
+	public Image getImage(int tilestage) {
+		return tiles.get(tilestage);
 	}
 }
