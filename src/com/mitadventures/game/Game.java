@@ -744,8 +744,8 @@ public class Game extends Canvas implements Runnable {
 					if (x > (player.xPos / 16) - (screen.width / 32) - 1 && y > (player.yPos / 16) - (screen.height / 32) - 2 && x < (player.xPos / 16) + (screen.width / 32) + 2 && y < (player.yPos / 16) + (screen.height / 32) + 2) {
 						if (AnimatedTile.isAnimated(animationSet, Map.getTile(x, y, layer)))
 							g.drawImage(tileset.get(Map.getTile(x, y, layer) - 1), (x * 16 - xOffset)  * SCALE, (y * 16 - yOffset) * SCALE, 16 * SCALE, 16 * SCALE, null);
-						else
-							g.drawImage(animationSet.get(arg0).get())
+						//else
+							//g.drawImage(animationSet.get(arg0).get())
 					}
 				}
 			}
