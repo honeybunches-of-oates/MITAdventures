@@ -24,7 +24,7 @@ public abstract class Actor extends Entity {
     	this.xPos1 = x;
     	this.yPos1 = y;
     	spriteSets = new ArrayList<SpriteSet>();
-    	spriteSets.add(new PlayerSpriteSet(type));
+    	spriteSets.add(new PlayerSpriteSet(type, null));
     }
     ///////////////////////
     

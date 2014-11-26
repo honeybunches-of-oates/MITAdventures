@@ -110,36 +110,36 @@ public class NPC extends Actor {
 		int yTilePos = getCurrentYTile();
 		int tileid = game.layer1.getTile(xTilePos, yTilePos);
 
-		if (Tile.getSolidity(game.layer1.getTile(xTilePos, yTilePos - 1), game)
+		if (Tile.getSolidity(game.layer1.getTile(xTilePos, yTilePos - 1), game.solidTilesList)
 				|| Tile.upBoundary(tileid)
 				|| (game.player.getCurrentXTile() == xTilePos & game.player
 						.getCurrentYTile() == yTilePos - 1))
 			canMoveUp = false;
-		if (Tile.getSolidity(game.layer1.getTile(xTilePos - 1, yTilePos), game)
+		if (Tile.getSolidity(game.layer1.getTile(xTilePos - 1, yTilePos), game.solidTilesList)
 				|| Tile.leftBoundary(tileid)
 				|| (game.player.getCurrentXTile() == xTilePos - 1 & game.player
 						.getCurrentYTile() == yTilePos))
 			canMoveLeft = false;
-		if (Tile.getSolidity(game.layer1.getTile(xTilePos, yTilePos + 1), game)
+		if (Tile.getSolidity(game.layer1.getTile(xTilePos, yTilePos + 1), game.solidTilesList)
 				|| Tile.downBoundary(tileid)
 				|| (game.player.getCurrentXTile() == xTilePos & game.player
 						.getCurrentYTile() == yTilePos + 1))
 			canMoveDown = false;
-		if (Tile.getSolidity(game.layer1.getTile(xTilePos + 1, yTilePos), game)
+		if (Tile.getSolidity(game.layer1.getTile(xTilePos + 1, yTilePos), game.solidTilesList)
 				|| Tile.rightBoundary(tileid)
 				|| (game.player.getCurrentXTile() == xTilePos + 1 & game.player
 						.getCurrentYTile() == yTilePos))
 			canMoveRight = false;
-		if (Tile.getSolidity(game.layer2.getTile(xTilePos, yTilePos - 1), game)
+		if (Tile.getSolidity(game.layer2.getTile(xTilePos, yTilePos - 1), game.solidTilesList)
 				|| Tile.upBoundary(tileid))
 			canMoveUp = false;
-		if (Tile.getSolidity(game.layer2.getTile(xTilePos - 1, yTilePos), game)
+		if (Tile.getSolidity(game.layer2.getTile(xTilePos - 1, yTilePos), game.solidTilesList)
 				|| Tile.leftBoundary(tileid))
 			canMoveLeft = false;
-		if (Tile.getSolidity(game.layer2.getTile(xTilePos, yTilePos + 1), game)
+		if (Tile.getSolidity(game.layer2.getTile(xTilePos, yTilePos + 1), game.solidTilesList)
 				|| Tile.downBoundary(tileid))
 			canMoveDown = false;
-		if (Tile.getSolidity(game.layer2.getTile(xTilePos + 1, yTilePos), game)
+		if (Tile.getSolidity(game.layer2.getTile(xTilePos + 1, yTilePos), game.solidTilesList)
 				|| Tile.rightBoundary(tileid))
 			canMoveRight = false;
 	}

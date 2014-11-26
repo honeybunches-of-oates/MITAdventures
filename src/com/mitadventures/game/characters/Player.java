@@ -7,6 +7,7 @@ package com.mitadventures.game.characters;
 
 import com.mitadventures.game.Controller;
 import com.mitadventures.game.Game;
+import com.mitadventures.game.graphics.PlayerSpriteSet;
 import com.mitadventures.game.graphics.SpriteSet;
 import com.mitadventures.game.level.Level;
 import com.mitadventures.game.level.tiles.Tile;
@@ -14,6 +15,8 @@ import com.mitadventures.game.level.tiles.Tile;
 public class Player extends Actor {
 
 	// Player Reference Variables //
+	public String name;
+	private String type;
 	private Controller controller;
 	public boolean isWalking = false;
 	public int numSteps = 0;
@@ -28,12 +31,14 @@ public class Player extends Actor {
 	public boolean isSwimming = false;
 	public boolean isClimbing = false;
 	public boolean isJumping = false;
+	public boolean isPuddling = false;
 	public boolean wolfState = false;
 	public boolean midnaState = false;
 	public boolean isFighting = false;
 	public boolean isWhistling = false;
 	public boolean isAttacking = false;
 	public SpriteSet swimming;
+	public SpriteSet puddling;
 	public SpriteSet climbing;
 	public SpriteSet fighting;
 	public SpriteSet jumping;
@@ -90,13 +95,49 @@ public class Player extends Actor {
 	// Player Constructor //
 	public Player(Game game, Level level, int x, int y, Controller controller, String type) {
 		super(x, y, level, type);
+		this.type = type;
 		this.controller = controller;
 		this.game = game;
+		loadSpriteSets();
+		spriteSets.add(swimming);
+		/**
+		spriteSets.add(puddling);
+		spriteSets.add(climbing);
+		spriteSets.add(fighting);
+		spriteSets.add(jumping);
+		spriteSets.add(jumpingSwordAttack);
+		spriteSets.add(somersault);
+		spriteSets.add(finishAttack);
+		spriteSets.add(swordAttack);
+		spriteSets.add(shieldDefense);
+		spriteSets.add(holdingitem);
+		spriteSets.add(death);
+		spriteSets.add(deathByLava);
+		spriteSets.add(deathByPit);
+		spriteSets.add(injury);
+		spriteSets.add(firingBow);
+		spriteSets.add(firingSlingShot);
+		spriteSets.add(whistling);
+		spriteSets.add(throwingBoomerang);
+		spriteSets.add(spinner);
+		spriteSets.add(spinnerAttack);
+		spriteSets.add(clawshot);
+		spriteSets.add(doubleclawshot);
+		spriteSets.add(ironBoots);
+		**/
 	}
 	////////////////////////
 	
+	public void loadSpriteSets() {
+		swimming = loadPlayerSpriteSet("swim");
+	}
+	
+	public PlayerSpriteSet loadPlayerSpriteSet(String activity) {
+		return new PlayerSpriteSet(type, activity);
+	}
+	
 	public int getStage() {
-		
+		return 1;
 	}
 
 	// Setting Sprite Method //
@@ -207,38 +248,38 @@ public class Player extends Actor {
 		int tileid = game.layer1.getTile(xTilePos, yTilePos);
 		
 		for (Entity e : game.level.entities) {
-			if (Tile.getSolidity(game.layer1.getTile(xTilePos, yTilePos - 1), game)
+			if (Tile.getSolidity(game.layer1.getTile(xTilePos, yTilePos - 1), game.solidTilesList)
 					|| Tile.upBoundary(tileid)
 					|| (e.getCurrentXTile() == xTilePos 
 					& e.getCurrentYTile() == yTilePos - 1))
 				super.canMoveUp = false;
-			if (Tile.getSolidity(game.layer1.getTile(xTilePos - 1, yTilePos), game)
+			if (Tile.getSolidity(game.layer1.getTile(xTilePos - 1, yTilePos), game.solidTilesList)
 					|| Tile.leftBoundary(tileid)
 					|| (e.getCurrentXTile() == xTilePos - 1 
 					& e.getCurrentYTile() == yTilePos))
 				super.canMoveLeft = false;
-			if (Tile.getSolidity(game.layer1.getTile(xTilePos, yTilePos + 1), game)
+			if (Tile.getSolidity(game.layer1.getTile(xTilePos, yTilePos + 1), game.solidTilesList)
 					|| Tile.downBoundary(tileid)
 					|| (e.getCurrentXTile() == xTilePos 
 					& e.getCurrentYTile() == yTilePos + 1))
 				super.canMoveDown = false;
-			if (Tile.getSolidity(game.layer1.getTile(xTilePos + 1, yTilePos), game)
+			if (Tile.getSolidity(game.layer1.getTile(xTilePos + 1, yTilePos), game.solidTilesList)
 					|| Tile.rightBoundary(tileid)
 					|| (e.getCurrentXTile() == xTilePos + 1
 					& e.getCurrentYTile() == yTilePos))
 				super.canMoveRight = false;
 		}
 		
-		if (Tile.getSolidity(game.layer2.getTile(xTilePos, yTilePos - 1), game)
+		if (Tile.getSolidity(game.layer2.getTile(xTilePos, yTilePos - 1), game.solidTilesList)
 				|| Tile.upBoundary(tileid))
 			super.canMoveUp = false;
-		if (Tile.getSolidity(game.layer2.getTile(xTilePos - 1, yTilePos), game)
+		if (Tile.getSolidity(game.layer2.getTile(xTilePos - 1, yTilePos), game.solidTilesList)
 				|| Tile.leftBoundary(tileid))
 			super.canMoveLeft = false;
-		if (Tile.getSolidity(game.layer2.getTile(xTilePos, yTilePos + 1), game)
+		if (Tile.getSolidity(game.layer2.getTile(xTilePos, yTilePos + 1), game.solidTilesList)
 				|| Tile.downBoundary(tileid))
 			super.canMoveDown = false;
-		if (Tile.getSolidity(game.layer2.getTile(xTilePos + 1, yTilePos), game)
+		if (Tile.getSolidity(game.layer2.getTile(xTilePos + 1, yTilePos), game.solidTilesList)
 				|| Tile.rightBoundary(tileid))
 			super.canMoveRight = false;
 

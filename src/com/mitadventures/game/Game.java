@@ -35,6 +35,7 @@ import com.mitadventures.game.level.Level;
 import com.mitadventures.game.level.Map;
 import com.mitadventures.game.level.WarpPoint;
 import com.mitadventures.game.level.tiles.AnimatedTile;
+import com.mitadventures.game.level.tiles.Tile;
 
 public class Game extends Canvas implements Runnable {
 
@@ -45,7 +46,7 @@ public class Game extends Canvas implements Runnable {
 	public static final int WIDTH = 208;
 	public static final int HEIGHT = 176;
 	public static final int SCALE = 3; 
-	public static final String NAME = "MIT Adventures: Tim vs. The Mad Hacker";
+	public static final String NAME = "The Legend of Zelda: Twilight Princess";
 
 	private JFrame frame;
 
@@ -70,7 +71,7 @@ public class Game extends Canvas implements Runnable {
 	private Image selector;
 	private Image continueArrow;
 	private BufferedImage animationSheet;
-	private Image solidTileSheet;
+	private BufferedImage solidTileSheet;
 	
 		// Game States
 	private boolean atTitle = true;
@@ -108,6 +109,7 @@ public class Game extends Canvas implements Runnable {
 	private List<BufferedImage> tileset = new ArrayList<BufferedImage>();
 	
 	private List<AnimatedTile> animationSet = new ArrayList<AnimatedTile>();
+	public int[] solidTilesList;
 	
 		// Array for individual alphanumerical characters from font sheet
 	private List<BufferedImage> font = new ArrayList<BufferedImage>();
@@ -253,6 +255,7 @@ public class Game extends Canvas implements Runnable {
 		player = new Player(this, level, 12 * 16, 31 * 16, controller, "Link");
 		level.addEntity(player);
 			// Loads all sprite, game, and map images
+		solidTilesList = Tile.findSolidTileIDs(solidTileSheet, tileset);
 	}
 	///////////////////////
 	
@@ -338,6 +341,10 @@ public class Game extends Canvas implements Runnable {
 			animationSheet = ImageIO.read(Game.class.getResourceAsStream("/animationsheet.png"));
 		} catch (IOException e) {
 			System.out.println(e);
+		} try {
+			solidTileSheet = ImageIO.read(Game.class.getResourceAsStream("/SolidTiles.png"));
+		} catch (IOException e) {
+			System.out.println(e);
 		}
 		
 			// Loading fontsheet, String sizes indicates pixel widths of characters as they appear on the fontsheet
@@ -403,12 +410,6 @@ public class Game extends Canvas implements Runnable {
 	}
 	///////////////////////
 	
-	// Animate Tiles Method //
-	public void animateTiles() {
-			
-	}
-	//////////////////////////
-	
 	// Set Animation Set Tiles //
 	public void loadAnimationTiles() {
 		for (int y = 0; y < animationSheet.getHeight() / 16; y++) {
@@ -430,6 +431,7 @@ public class Game extends Canvas implements Runnable {
 				tileset.add(spritesheet.getSubimage(x * 16, y * 16, 16, 16));
 			}
 		}
+		solidTilesList = Tile.findSolidTileIDs(solidTileSheet, tileset);
 	}
 	/////////////////////////////
 	
@@ -479,12 +481,14 @@ public class Game extends Canvas implements Runnable {
 	private void setupMap(String name) {
 		String mapText1 = "";
 		String mapText2 = "";
+		String solidTileText = "";
 		try {
-			File file = new File("/Users/Richard/Documents/workspace/MITAdventures/res/Spritesheet(" + name + ")_mapText.txt");
+			File file = new File("/Users/RichardOates/Documents/workspace/MITAdventures/res/Spritesheet(" + name + ")_mapText.txt");
 			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 			try {
 				mapText1 = br.readLine();
 				mapText2 = br.readLine();
+				solidTileText = br.readLine();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
@@ -493,6 +497,7 @@ public class Game extends Canvas implements Runnable {
 		}
 			layer1 = new Map(mapText1);
 			layer2 = new Map(mapText2);
+			solidTilesList = Tile.getList(solidTileText);
 			level = new Level(name, layer1, layer2);
 		   	screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/Spritesheet(" + name + ").png"));
 	}

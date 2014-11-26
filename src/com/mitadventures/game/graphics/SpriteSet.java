@@ -10,7 +10,6 @@ public abstract class SpriteSet {
 	public SpriteSet(String name, int directions, int stages) {
 		this.name = name;
 		sprites = new Image[directions][stages];
-		loadSpriteSet();
 	}
 	
 	public abstract void loadSpriteSet();

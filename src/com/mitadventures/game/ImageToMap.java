@@ -17,6 +17,7 @@ public class ImageToMap {
 	private BufferedImage map1;
 	private BufferedImage map2;
 	private BufferedImage spritesheet;
+	private BufferedImage solidTileSheet;
 	private String mapPath;
 
 	public ImageToMap(String mapPath) {
