@@ -64,10 +64,12 @@ public abstract class Tile {
 				if (solidTileText.charAt(i) == ',')
 					length++;
 		}
+		solidTileText = solidTileText.substring(1, solidTileText.length() - 1);
 		int[] solidTilesList = new int[length + 1];
-		int space = 0;
 		for (int i = 0; i < length + 1; i++) {
-			
+			int splitpoint = solidTileText.indexOf(' ');
+			int solidTileID = solidTileText.substring(0, splitpoint - 1).;
+			solidTilesList[i] = solidTileText.
 		}
 		return
 	}

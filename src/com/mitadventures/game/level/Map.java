@@ -1,4 +1,4 @@
-/* Map Class
+ /* Map Class
  * Retrieves the width, height, and tile id of a map
  * Can alter tile numbers in a map object
  * 
