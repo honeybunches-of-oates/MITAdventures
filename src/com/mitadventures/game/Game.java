@@ -255,7 +255,6 @@ public class Game extends Canvas implements Runnable {
 		player = new Player(this, level, 12 * 16, 31 * 16, controller, "Link");
 		level.addEntity(player);
 			// Loads all sprite, game, and map images
-		solidTilesList = Tile.findSolidTileIDs(solidTileSheet, tileset);
 	}
 	///////////////////////
 	
@@ -431,7 +430,6 @@ public class Game extends Canvas implements Runnable {
 				tileset.add(spritesheet.getSubimage(x * 16, y * 16, 16, 16));
 			}
 		}
-		solidTilesList = Tile.findSolidTileIDs(solidTileSheet, tileset);
 	}
 	/////////////////////////////
 	
@@ -456,7 +454,7 @@ public class Game extends Canvas implements Runnable {
 				NPCs.add(genericNPC);
 				level.addEntity(genericNPC);
 			// Warp Points
-				WarpPoint warp1 = new WarpPoint(this, 1, 16, 42, 2, 15, 15, "down");
+				WarpPoint warp1 = new WarpPoint(this, 1, 16, 42, 2, 20, 20, "down");
 				addWarpPoint(warp1);
 			break;
 					
@@ -483,7 +481,7 @@ public class Game extends Canvas implements Runnable {
 		String mapText2 = "";
 		String solidTileText = "";
 		try {
-			File file = new File("/Users/RichardOates/Documents/workspace/MITAdventures/res/Spritesheet(" + name + ")_mapText.txt");
+			File file = new File("/Users/Richard/Documents/workspace/MITAdventures/res/Spritesheet(" + name + ")_mapText.txt");
 			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 			try {
 				mapText1 = br.readLine();
@@ -497,9 +495,9 @@ public class Game extends Canvas implements Runnable {
 		}
 			layer1 = new Map(mapText1);
 			layer2 = new Map(mapText2);
-			solidTilesList = Tile.getList(solidTileText);
 			level = new Level(name, layer1, layer2);
 		   	screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("/Spritesheet(" + name + ").png"));
+		   	solidTilesList = Tile.getList(solidTileText);
 	}
 	//////////////////////
 	

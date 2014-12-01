@@ -13,7 +13,7 @@ import com.mitadventures.game.Game;
 
 public abstract class Tile {
 	
-	public static int[] findSolidTileIDs(BufferedImage solidTileSheet, List<BufferedImage> tileSet) {
+	public static String findSolidTileIDs(BufferedImage solidTileSheet, List<BufferedImage> tileSet) {
 		List<Integer> solidTileIDs_dynamic = new ArrayList<Integer>();
 		int solidpixels[] = new int[16 * 16];
 		int spritesheetpixels[] = new int[16 * 16];
@@ -55,7 +55,7 @@ public abstract class Tile {
 		for(int i = 0; i < solidTileIDs_static.length; i++)
 			solidTileIDs_static[i] = solidTileIDs_dynamic.get(i).intValue();
 		System.out.println(solidTileIDs_dynamic);
-		return solidTileIDs_static;
+		return solidTileIDs_dynamic.toString();
 	}
 	
 	public static int[] getList(String solidTileText) {
@@ -68,10 +68,15 @@ public abstract class Tile {
 		int[] solidTilesList = new int[length + 1];
 		for (int i = 0; i < length + 1; i++) {
 			int splitpoint = solidTileText.indexOf(' ');
-			int solidTileID = solidTileText.substring(0, splitpoint - 1).;
-			solidTilesList[i] = solidTileText.
+			if (splitpoint == -1)
+				splitpoint = solidTileText.length() + 1;
+			String solidTileID = solidTileText.substring(0, splitpoint - 1);
+			for (int j = 0; j < solidTileID.length(); j++)
+				solidTilesList[i] += (solidTileID.charAt(solidTileID.length() - j - 1) - 48) * Math.pow(10, j);
+			if (i != length)
+				solidTileText = solidTileText.substring(splitpoint + 1);
 		}
-		return
+		return solidTilesList;
 	}
 
 	public static boolean getSolidity(int tileid, int[] solidTiles) {

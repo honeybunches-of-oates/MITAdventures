@@ -12,6 +12,8 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import com.mitadventures.game.level.tiles.Tile;
+
 public class ImageToMap {
 
 	private BufferedImage map1;
@@ -22,24 +24,33 @@ public class ImageToMap {
 
 	public ImageToMap(String mapPath) {
 		try {
-			this.map1 = ImageIO.read(ImageToMap.class.getResourceAsStream("/"
-					+ mapPath + "_layer1.png"));
+			this.map1 = ImageIO.read(ImageToMap.class.getResourceAsStream("/" + mapPath + "_layer1.png"));
 		} catch (IOException e) {
 			System.out.println(e);
-		}
-		try {
-			this.map2 = ImageIO.read(ImageToMap.class.getResourceAsStream("/"
-					+ mapPath + "_layer2.png"));
+		} try {
+			this.map2 = ImageIO.read(ImageToMap.class.getResourceAsStream("/" + mapPath + "_layer2.png"));
 		} catch (IOException e) {
 			System.out.println(e);
-		}
-		try {
-			this.spritesheet = ImageIO.read(ImageToMap.class
-					.getResourceAsStream("/Spritesheet(" + mapPath + ").png"));
+		} try {
+			this.spritesheet = ImageIO.read(ImageToMap.class.getResourceAsStream("/Spritesheet(" + mapPath + ").png"));
+		} catch (IOException e) {
+			System.out.println(e);
+		} try {
+			this.solidTileSheet = ImageIO.read(ImageToMap.class.getResourceAsStream("/SolidTiles.png"));
 		} catch (IOException e) {
 			System.out.println(e);
 		}
 		this.mapPath = mapPath;
+	}
+	
+	public String makeSolidTileText() {
+		List<BufferedImage> tileset = new ArrayList<BufferedImage>();
+		for (int y = 0; y < spritesheet.getHeight() / 16; y++) {
+			for (int x = 0; x < spritesheet.getWidth() / 16; x++) {
+				tileset.add(spritesheet.getSubimage(x * 16, y * 16, 16, 16));
+			}
+		}
+		return Tile.findSolidTileIDs(solidTileSheet, tileset);
 	}
 
 	public int findTileNum(int tile_xPos, int tile_yPos, BufferedImage layer) {
@@ -119,6 +130,7 @@ public class ImageToMap {
 	public void saveMapText() {
 		String mapText = makeMapText();
 		String mapText1 = makeMap1Text();
+		String solidTileText = makeSolidTileText();
 		
 		BufferedWriter writer = null;
 
@@ -132,6 +144,8 @@ public class ImageToMap {
             writer.write(mapText);
             writer.newLine();
             writer.write(mapText1);
+            writer.newLine();
+            writer.write(solidTileText);
         //    writer.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -287,7 +301,7 @@ public class ImageToMap {
 		}
 
 	public static void main(String[] args) {
-		ImageToMap imageToMap = new ImageToMap("Ordon_Village_Main");
+		ImageToMap imageToMap = new ImageToMap("Sacred_Grove_Temple");
 		imageToMap.makeSpriteSheet();
 		imageToMap.saveMapText();
 	}
